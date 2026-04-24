@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KET 300高频单词学习网站</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>KET 300高频单词学习</h1>
+            <p>专为二年级小朋友设计的英语单词学习工具</p>
+        </header>
+        
+        <nav>
+            <ul>
+                <li><a href="#learn">学习</a></li>
+                <li><a href="#review">复习</a></li>
+                <li><a href="#test">测试</a></li>
+                <li><a href="#game">游戏</a></li>
+            </ul>
+        </nav>
+        
+        <main>
+            <section id="learn" class="section">
+                <h2>单词学习</h2>
+                <div class="category-selector">
+                    <h3>选择分类：</h3>
+                    <div class="categories">
+                        <button class="category-btn active" data-category="daily">日常生活</button>
+                        <button class="category-btn" data-category="school">学校学习</button>
+                        <button class="category-btn" data-category="family">家庭家务</button>
+                        <button class="category-btn" data-category="nature">天气自然</button>
+                        <button class="category-btn" data-category="food">食物</button>
+                        <button class="category-btn" data-category="animals">动物</button>
+                    </div>
+                </div>
+                <div class="word-list">
+                    <!-- 单词列表将通过JavaScript动态生成 -->
+                </div>
+            </section>
+            
+            <section id="review" class="section">
+                <h2>单词复习</h2>
+                <div class="review-mode">
+                    <button class="mode-btn active" data-mode="flashcard">闪卡模式</button>
+                    <button class="mode-btn" data-mode="list">列表模式</button>
+                </div>
+                <div class="review-content">
+                    <!-- 复习内容将通过JavaScript动态生成 -->
+                </div>
+            </section>
+            
+            <section id="test" class="section">
+                <h2>单词测试</h2>
+                <div class="test-options">
+                    <h3>选择测试类型：</h3>
+                    <div class="test-types">
+                        <button class="test-type-btn active" data-type="multiple">选择题</button>
+                        <button class="test-type-btn" data-type="fill">填空题</button>
+                        <button class="test-type-btn" data-type="matching">匹配题</button>
+                    </div>
+                    <h3>选择难度：</h3>
+                    <div class="difficulty-levels">
+                        <button class="difficulty-btn active" data-level="easy">简单</button>
+                        <button class="difficulty-btn" data-level="medium">中等</button>
+                        <button class="difficulty-btn" data-level="hard">困难</button>
+                    </div>
+                    <button id="start-test" class="start-btn">开始测试</button>
+                </div>
+                <div class="test-content">
+                    <!-- 测试内容将通过JavaScript动态生成 -->
+                </div>
+                <div class="test-results">
+                    <!-- 测试结果将通过JavaScript动态生成 -->
+                </div>
+            </section>
+            
+            <section id="game" class="section">
+                <h2>单词游戏</h2>
+                <div class="game-options">
+                    <h3>选择游戏：</h3>
+                    <div class="games">
+                        <button class="game-btn" data-game="memory">记忆配对</button>
+                        <button class="game-btn" data-game="hangman">猜词游戏</button>
+                        <button class="game-btn" data-game="spelling">拼写练习</button>
+                    </div>
+                </div>
+                <div class="game-content">
+                    <!-- 游戏内容将通过JavaScript动态生成 -->
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2026 KET单词学习网站 | 专为二年级小朋友设计</p>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
