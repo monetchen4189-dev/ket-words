@@ -408,7 +408,8 @@ function initSession() {
   }
 
   const dc = settings.dailyCount;
-  const newWords = ALL_WORDS.filter(w => !stats[w.w] || (!stats[w.w].mastered && !stats[w.w].reviewCount));
+  const newWordObjs = ALL_WORDS.filter(w => !stats[w.w] || (!stats[w.w].mastered && !stats[w.w].reviewCount));
+  const newWords = newWordObjs.map(w => w.w);
   shuffleArray(newWords);
   shuffleArray(toReview);
 
@@ -423,7 +424,7 @@ function initSession() {
     sessionList = [...toReview.slice(0, reviewCount), ...newWords.slice(0, newCount)];
     shuffleArray(sessionList);
   }
-  if (sessionList.length === 0) sessionList = ALL_WORDS.slice(0, dc);
+  if (sessionList.length === 0) sessionList = ALL_WORDS.map(w => w.w).slice(0, dc);
   sessionWords = sessionList;
   currentWordIdx = 0;
   dailyCount = 0;
