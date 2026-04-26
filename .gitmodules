@@ -1,0 +1,3 @@
+[submodule "toefl-junior"]
+	path = toefl-junior
+	url = https://github.com/monetchen4189-dev/tofel_junior_words.git
