@@ -69,6 +69,9 @@ body{font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;background
 .tooltip{position:relative}
 .tooltip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100%+6px);left:50%;transform:translateX(-50%);background:#1e3a5f;color:#fff;padding:6px 12px;border-radius:8px;font-size:.8rem;white-space:nowrap;z-index:100}
 select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;border-radius:12px;padding:10px 36px 10px 14px;font-size:1rem;font-weight:600;color:#1e3a5f;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%233b82f6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;font-family:inherit}
+.cat-tab{padding:4px 10px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;border:2px solid #dbeafe;background:#f0f9ff;color:#3b82f6;transition:all .15s}
+.cat-tab:hover{background:#dbeafe}
+.cat-tab.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
 @media(max-width:640px){.word-display{font-size:2.2rem}.big-text{font-size:1.8rem}.page{padding:12px}.card{padding:16px}.stats-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -96,12 +99,16 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
     </div>
 
     <div class="space-y-3">
-      <button class="kid-btn w-full justify-center" id="btn-start-learn"><span>📖</span> 开始学习</button>
-      <button class="kid-btn green w-full justify-center" id="btn-start-quiz"><span>✍️</span> 拼写挑战</button>
-      <button class="kid-btn orange w-full justify-center" id="btn-wrong-words"><span>📕</span> 错题本</button>
-      <button class="kid-btn purple w-full justify-center" id="btn-starred-words"><span>⭐</span> 收藏单词</button>
-      <button class="kid-btn outline w-full justify-center" id="btn-stats"><span>📊</span> 学习统计</button>
-      <button class="kid-btn outline w-full justify-center" id="btn-settings"><span>⚙️</span> 设置</button>
+      <div class="grid grid-cols-2 gap-3">
+        <button class="kid-btn w-full justify-center text-lg" id="btn-start-learn" style="padding:20px 16px;flex-direction:column;gap:4px"><span style="font-size:2rem">📖</span> 学单词</button>
+        <button class="kid-btn green w-full justify-center text-lg" id="btn-start-quiz" style="padding:20px 16px;flex-direction:column;gap:4px"><span style="font-size:2rem">✍️</span> 背单词</button>
+      </div>
+      <div class="grid grid-cols-4 gap-2 mt-2">
+        <button class="kid-btn orange small w-full justify-center" id="btn-wrong-words" style="padding:10px 4px;font-size:.85rem;flex-direction:column;gap:2px"><span>📕</span> 错题</button>
+        <button class="kid-btn purple small w-full justify-center" id="btn-starred-words" style="padding:10px 4px;font-size:.85rem;flex-direction:column;gap:2px"><span>⭐</span> 收藏</button>
+        <button class="kid-btn outline small w-full justify-center" id="btn-stats" style="padding:10px 4px;font-size:.85rem;flex-direction:column;gap:2px"><span>📊</span> 统计</button>
+        <button class="kid-btn outline small w-full justify-center" id="btn-settings" style="padding:10px 4px;font-size:.85rem;flex-direction:column;gap:2px"><span>⚙️</span> 设置</button>
+      </div>
     </div>
 
     <div class="mt-4 card">
@@ -230,6 +237,8 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <span class="flex items-center gap-1"><span class="w-4 h-4 rounded bg-orange-400 inline-block"></span> 学习中</span>
         <span class="flex items-center gap-1"><span class="w-4 h-4 rounded bg-green-500 inline-block"></span> 已掌握</span>
       </div>
+      <div class="flex flex-wrap gap-1 mb-3 justify-center" id="category-tabs"></div>
+      <div id="category-summary" class="text-center text-sm text-gray-500 mb-3"></div>
       <div class="word-grid" id="mastery-grid"></div>
     </div>
     <div class="card mb-4">
@@ -335,12 +344,14 @@ function saveSettings(s) {
 
 function newData() {
   return {
-    version: 1,
+    version: 2,
     learned: {}, today: {}, history: {},
     wrong: {}, starred: {}, badges: {},
     wordStats: {},
     session: { date: '', count: 0, correct: 0 },
-    dailyLog: []
+    dailyLog: [],
+    todayWords: [],
+    todayDone: {}
   };
 }
 
@@ -386,7 +397,16 @@ function initSession() {
   const t = today();
   if (data.session.date !== t) {
     data.session = { date: t, count: 0, correct: 0 };
+    data.todayWords = [];
+    data.todayDone = {};
     saveData();
+  }
+  if (data.todayWords && data.todayWords.length > 0) {
+    sessionWords = [...data.todayWords];
+    currentWordIdx = 0;
+    dailyCount = 0;
+    sessionStartTime = Date.now();
+    return;
   }
   const stats = data.wordStats || {};
   const intensity = settings.intensity;
@@ -425,6 +445,9 @@ function initSession() {
     shuffleArray(sessionList);
   }
   if (sessionList.length === 0) sessionList = ALL_WORDS.map(w => w.w).slice(0, dc);
+  data.todayWords = [...sessionList];
+  data.todayDone = {};
+  saveData();
   sessionWords = sessionList;
   currentWordIdx = 0;
   dailyCount = 0;
@@ -454,12 +477,13 @@ function showPage(id) {
 /* ========== HOME ========== */
 function renderHome() {
   const t = today();
-  const total = ALL_WORDS.length;
-  const learned = Object.keys(data.wordStats || {}).length;
-  const pct = total ? Math.round(learned / total * 100) : 0;
+  const dc = settings.dailyCount;
+  const todayDone = data.todayDone || {};
+  const todayDoneCount = Object.keys(todayDone).length;
+  const pct = dc ? Math.min(100, Math.round(todayDoneCount / dc * 100)) : 0;
   document.getElementById('today-progress').style.setProperty('--pct', pct + '%');
   document.getElementById('today-pct-text').textContent = pct + '%';
-  document.getElementById('today-counts').textContent = `${learned} / ${total}`;
+  document.getElementById('today-counts').textContent = `${todayDoneCount} / ${dc}`;
 
   const toReview = countReview();
   document.getElementById('today-review-count').textContent = `待复习：${toReview} 词`;
@@ -557,7 +581,7 @@ function showLearnComplete() {
   const btn = document.createElement('button');
   btn.className = 'kid-btn w-full justify-center mt-4';
   btn.innerHTML = '<span>🏠</span> 返回首页';
-  btn.onclick = () => showPage('home');
+  btn.onclick = () => { renderHome(); showPage('home'); };
   document.getElementById('learn-card').appendChild(btn);
   launchConfetti();
 }
@@ -614,7 +638,7 @@ function showQuizComplete() {
   document.getElementById('quiz-result-example').textContent = data.session.count > 0
     ? Math.round(data.session.correct / data.session.count * 100) + '%' : '-';
   document.getElementById('btn-quiz-next').innerHTML = '<span>🏠</span> 返回首页';
-  document.getElementById('btn-quiz-next').onclick = () => showPage('home');
+  document.getElementById('btn-quiz-next').onclick = () => { renderHome(); showPage('home'); };
   launchConfetti();
 }
 
@@ -739,15 +763,43 @@ function renderStats() {
 
   const grid = document.getElementById('mastery-grid');
   const wStats = data.wordStats || {};
-  grid.innerHTML = ALL_WORDS.map(w => {
-    const s = wStats[w.w];
-    let cls = 'word-chip';
-    if (!s) cls += '';
-    else if (s.mastered) cls += ' mastered';
-    else if (s.wrongCount > 0 || s.reviewCount) cls += ' wrong';
-    else cls += ' learned';
-    return `<div class="${cls}" title="${w.w}: ${w.m}">${w.w}</div>`;
-  }).join('');
+
+  const letters = [...new Set(ALL_WORDS.map(w => w.w.charAt(0).toUpperCase()))].sort();
+  const tabsEl = document.getElementById('category-tabs');
+  const summaryEl = document.getElementById('category-summary');
+  if (!window._currentCategory) window._currentCategory = 'all';
+
+  tabsEl.innerHTML = `<span class="cat-tab ${window._currentCategory === 'all' ? 'active' : ''}" data-cat="all">全部</span>` +
+    letters.map(l => `<span class="cat-tab ${window._currentCategory === l ? 'active' : ''}" data-cat="${l}">${l}</span>`).join('');
+  tabsEl.querySelectorAll('.cat-tab').forEach(tab => {
+    tab.onclick = () => {
+      window._currentCategory = tab.dataset.cat;
+      renderMasteryGrid();
+    };
+  });
+
+  renderMasteryGrid();
+
+  function renderMasteryGrid() {
+    const cat = window._currentCategory || 'all';
+    tabsEl.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+
+    const filtered = cat === 'all' ? ALL_WORDS : ALL_WORDS.filter(w => w.w.charAt(0).toUpperCase() === cat);
+    const catLearned = filtered.filter(w => wStats[w.w] && !wStats[w.w].mastered && (wStats[w.w].reviewCount || wStats[w.w].wrongCount)).length;
+    const catMastered = filtered.filter(w => wStats[w.w] && wStats[w.w].mastered).length;
+    const catTotal = filtered.length;
+    summaryEl.textContent = cat === 'all' ? '' : `${cat} 开头：共 ${catTotal} 词，学习中 ${catLearned}，已掌握 ${catMastered}，未学 ${catTotal - catLearned - catMastered}`;
+
+    grid.innerHTML = filtered.map(w => {
+      const s = wStats[w.w];
+      let cls = 'word-chip';
+      if (!s) cls += '';
+      else if (s.mastered) cls += ' mastered';
+      else if (s.wrongCount > 0 || s.reviewCount) cls += ' wrong';
+      else cls += ' learned';
+      return `<div class="${cls}" title="${w.w}: ${w.m}">${w.w}</div>`;
+    }).join('');
+  }
 
   const wrongRank = document.getElementById('wrong-ranking');
   const wrongSorted = Object.entries(wStats)
@@ -840,12 +892,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-stats').onclick = () => { renderStats(); showPage('stats'); };
   document.getElementById('btn-settings').onclick = () => { applySettings(); showPage('settings'); };
 
-  document.getElementById('btn-back-home-l').onclick = () => showPage('home');
-  document.getElementById('btn-back-home-q').onclick = () => showPage('home');
-  document.getElementById('btn-back-home-w').onclick = () => showPage('home');
-  document.getElementById('btn-back-home-s').onclick = () => showPage('home');
-  document.getElementById('btn-back-home-st').onclick = () => showPage('home');
-  document.getElementById('btn-back-home-set').onclick = () => showPage('home');
+  document.getElementById('btn-back-home-l').onclick = () => { renderHome(); showPage('home'); };
+  document.getElementById('btn-back-home-q').onclick = () => { renderHome(); showPage('home'); };
+  document.getElementById('btn-back-home-w').onclick = () => { renderHome(); showPage('home'); };
+  document.getElementById('btn-back-home-s').onclick = () => { renderHome(); showPage('home'); };
+  document.getElementById('btn-back-home-st').onclick = () => { renderHome(); showPage('home'); };
+  document.getElementById('btn-back-home-set').onclick = () => { renderHome(); showPage('home'); };
 
   document.getElementById('btn-play-word').onclick = () => {
     const w = sessionWords[currentWordIdx];
@@ -871,6 +923,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!data.dailyLog.includes(today())) data.dailyLog.push(today());
       data.session.count = (data.session.count || 0) + 1;
       data.session.correct = (data.session.correct || 0) + 1;
+      if (!data.todayDone) data.todayDone = {};
+      data.todayDone[w] = true;
       saveData();
     }
     currentWordIdx++;
@@ -884,6 +938,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const stats = data.wordStats || {};
     if (!stats[w]) stats[w] = { reviewCount: 0, wrongCount: 0, mastered: false, lastReview: null };
     stats[w].wrongCount = (stats[w].wrongCount || 0) + 1;
+    if (!data.todayDone) data.todayDone = {};
+    data.todayDone[w] = true;
+    if (!data.dailyLog) data.dailyLog = [];
+    if (!data.dailyLog.includes(today())) data.dailyLog.push(today());
     saveData();
     currentWordIdx++;
     renderLearnWord();
@@ -940,6 +998,8 @@ document.addEventListener('DOMContentLoaded', () => {
       data.session.correct = (data.session.correct || 0) + 1;
       if (!data.dailyLog) data.dailyLog = [];
       if (!data.dailyLog.includes(today())) data.dailyLog.push(today());
+      if (!data.todayDone) data.todayDone = {};
+      data.todayDone[w] = true;
       saveData();
 
       setTimeout(() => {
@@ -990,6 +1050,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!data.wrong) data.wrong = {};
     data.wrong[w] = (data.wrong[w] || 0) + 1;
     data.session.count = (data.session.count || 0) + 1;
+    if (!data.todayDone) data.todayDone = {};
+    data.todayDone[w] = true;
     saveData();
     document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
     document.getElementById('btn-quiz-next').onclick = () => {
