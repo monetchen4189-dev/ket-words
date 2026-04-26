@@ -63,9 +63,6 @@ body{font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;background
 .stat-card{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:14px;padding:16px;text-align:center}
 .stat-card .num{font-size:1.8rem;font-weight:800;color:#1e3a5f}
 .stat-card .label{font-size:.8rem;color:#6b7280;margin-top:4px}
-.badge-grid{display:flex;flex-wrap:wrap;gap:8px}
-.badge{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:#f1f5f9;border:2px solid #e2e8f0}
-.badge.unlocked{background:#fef3c7;border-color:#fbbf24}
 .tooltip{position:relative}
 .tooltip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100%+6px);left:50%;transform:translateX(-50%);background:#1e3a5f;color:#fff;padding:6px 12px;border-radius:8px;font-size:.8rem;white-space:nowrap;z-index:100}
 select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;border-radius:12px;padding:10px 36px 10px 14px;font-size:1rem;font-weight:600;color:#1e3a5f;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%233b82f6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;font-family:inherit}
@@ -113,10 +110,23 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
 
     <div class="mt-4 card">
       <div class="flex items-center justify-between mb-2">
-        <span class="font-bold text-gray-700">⭐ 今日成就</span>
+        <span class="font-bold text-gray-700">⭐ 学习统计</span>
         <span class="text-sm text-gray-400" id="streak-count">连续 0 天</span>
       </div>
-      <div class="badge-grid" id="badge-grid"></div>
+      <div class="grid grid-cols-3 gap-2 text-center" id="badge-grid">
+        <div class="bg-blue-50 rounded-xl py-2">
+          <div class="text-lg font-bold text-blue-600" id="home-today-count">0</div>
+          <div class="text-xs text-gray-500">今日已学</div>
+        </div>
+        <div class="bg-green-50 rounded-xl py-2">
+          <div class="text-lg font-bold text-green-600" id="home-mastered-count">0</div>
+          <div class="text-xs text-gray-500">已掌握</div>
+        </div>
+        <div class="bg-purple-50 rounded-xl py-2">
+          <div class="text-lg font-bold text-purple-600" id="home-total-count">0</div>
+          <div class="text-xs text-gray-500">总打卡</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -126,9 +136,9 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       <h2 class="font-bold text-xl text-gray-700 flex-1">今日单词概览</h2>
     </div>
     <div class="card mb-4">
-      <div class="word-grid" id="today-word-grid"></div>
-    </div>
-    <button class="kid-btn w-full justify-center" id="btn-start-learn-detail"><span>📖</span> 开始学习</button>
+        <div id="today-word-grid" class="space-y-1"></div>
+      </div>
+      <button class="kid-btn w-full justify-center" id="btn-start-learn-detail" style="padding:12px 24px;font-size:1rem"><span>📖</span> 开始学习</button>
   </div>
   
   <div class="page" id="page-learn">
@@ -141,24 +151,22 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <div class="text-xs text-gray-400 mt-1 text-center" id="learn-progress-text">0 / 0</div>
       </div>
     </div>
-    <div class="card word-card" id="learn-card">
-      <div class="word-display" id="learn-word">hello</div>
-      <div class="phonetic-display" id="learn-phonetic">/həˈləʊ/</div>
-      <div class="flex justify-center gap-2 mb-3">
-        <button class="kid-btn" id="btn-play-word"><span>🔊</span> 发音</button>
+    <div class="card word-card" id="learn-card" style="padding:20px">
+        <div class="flex items-center justify-center gap-3 mb-1">
+          <div class="word-display" id="learn-word" style="font-size:2.8rem">hello</div>
+          <button id="btn-play-word" style="background:none;border:none;font-size:1.8rem;cursor:pointer;padding:4px;line-height:1;color:#3b82f6" title="点击发音">🔊</button>
+        </div>
+        <div class="phonetic-display" id="learn-phonetic" style="font-size:1rem;margin-bottom:8px">/həˈləʊ/</div>
+        <div class="flex justify-center gap-6 text-sm text-gray-600 mb-2">
+          <span><span class="text-gray-400">词性</span> <strong id="learn-pos">v.</strong></span>
+          <span><span class="text-gray-400">释义</span> <strong id="learn-meaning">你好</strong></span>
+        </div>
+        <div class="text-sm text-gray-500 mb-3 mx-auto max-w-sm" id="learn-example">Hello, my name is Tom.</div>
+        <div class="flex gap-2 justify-center">
+          <button class="kid-btn small outline" id="btn-prev" style="padding:6px 14px;font-size:.85rem">← 上一个</button>
+          <button class="kid-btn small green" id="btn-know" style="padding:6px 14px;font-size:.85rem">下一个 →</button>
+        </div>
       </div>
-      <div class="grid grid-cols-2 gap-3 text-left max-w-sm mx-auto mb-3">
-        <div class="bg-blue-50 rounded-xl p-3"><div class="text-xs text-gray-400">词性</div><div class="font-bold" id="learn-pos">v.</div></div>
-        <div class="bg-blue-50 rounded-xl p-3"><div class="text-xs text-gray-400">释义</div><div class="font-bold text-lg" id="learn-meaning">你好</div></div>
-      </div>
-      <div class="bg-yellow-50 rounded-xl p-3 mb-3 text-left max-w-sm mx-auto">
-        <div class="text-xs text-gray-400 mb-1">📝 例句</div>
-        <div class="font-medium text-sm" id="learn-example">Hello, my name is Tom.</div>
-      </div>
-      <div class="flex gap-2 justify-center">
-        <button class="kid-btn green" id="btn-know">➡️ 下一个</button>
-      </div>
-    </div>
   </div>
 
   <div class="page" id="page-quiz">
@@ -171,22 +179,22 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <div class="text-xs text-gray-400 mt-1 text-center" id="quiz-progress-text">0 / 0</div>
       </div>
     </div>
-    <div class="card word-card" id="quiz-card">
+    <div class="card word-card" id="quiz-card" style="padding:20px">
       <div class="text-sm text-gray-400 mb-2">请拼写下面这个单词：</div>
-      <div class="big-text text-3xl mb-6" id="quiz-meaning">你好</div>
-      <div class="flex justify-center gap-2 mb-4">
-        <button class="kid-btn small" id="btn-quiz-hint1"><span>🔊</span> 听发音</button>
-        <button class="kid-btn small orange" id="btn-quiz-hint2"><span>💡</span> 提示</button>
+      <div class="flex items-center justify-center gap-3 mb-4">
+        <div class="big-text text-3xl" id="quiz-meaning">你好</div>
+        <button id="btn-quiz-hint1" style="background:none;border:none;font-size:1.8rem;cursor:pointer;padding:4px;line-height:1;color:#3b82f6" title="听发音">🔊</button>
       </div>
       <div class="flex justify-center mb-4">
-        <input type="text" class="input-big" id="quiz-input" placeholder="输入英文..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        <input type="text" class="input-big" id="quiz-input" placeholder="输入英文..." autocomplete="off" autocapitalize="off" spellcheck="false" style="font-size:1.3rem;padding:12px 16px;max-width:320px">
       </div>
-      <div id="quiz-hint-area" class="hint-bar text-left max-w-sm mx-auto mb-3 hidden">
+      <div id="quiz-hint-area" class="hint-bar text-left max-w-sm mx-auto mb-3 hidden" style="font-size:.85rem">
         <span id="quiz-hint-text"></span>
       </div>
       <div class="flex gap-2 justify-center">
-        <button class="kid-btn green" id="btn-quiz-submit"><span>✅</span> 确认</button>
-        <button class="kid-btn pink" id="btn-quiz-skip"><span>⏭️</span> 跳过</button>
+        <button class="kid-btn small orange" id="btn-quiz-hint2" style="padding:6px 12px;font-size:.8rem"><span>💡</span> 提示</button>
+        <button class="kid-btn green small" id="btn-quiz-submit" style="padding:6px 18px;font-size:.9rem"><span>✅</span> 确认</button>
+        <button class="kid-btn pink small" id="btn-quiz-skip" style="padding:6px 18px;font-size:.9rem"><span>⏭️</span> 跳过</button>
       </div>
     </div>
     <div class="card word-card hidden" id="quiz-result-card">
@@ -337,6 +345,10 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
           <div class="w-11 h-6 bg-gray-200 peer-focus:outline-0 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
         </label>
       </div>
+      <div class="pt-2 border-t border-gray-100">
+        <button class="kid-btn small orange w-full justify-center" id="btn-reset-records" style="font-size:.85rem">🔄 重置学习记录</button>
+        <p class="text-xs text-gray-400 mt-1 text-center">仅清除学习进度，保留每日打卡记录</p>
+      </div>
     </div>
   </div>
 </div>
@@ -398,6 +410,178 @@ let isLearningMode = true;
 let quizHintLevel = 0;
 let dailyCount = 0;
 let sessionStartTime = null;
+
+/* ========== WORD THEMES ========== */
+const WORD_THEMES = {
+  // 食物(Food)
+  apple:"food", banana:"food", bread:"food", breakfast:"food", cake:"food", cheese:"food",
+  chicken:"food", chocolate:"food", coffee:"food", cook:"food", cup:"food", dinner:"food",
+  drink:"food", eat:"food", egg:"food", fish:"food", food:"food", fruit:"food", grape:"food",
+  hamburger:"food", hungry:"food", ice:"food", juice:"food", kitchen:"food", lemon:"food",
+  lunch:"food", meal:"food", meat:"food", milk:"food", orange:"food", picnic:"food",
+  pizza:"food", plate:"food", rice:"food", salt:"food", sandwich:"food", soup:"food",
+  sugar:"food", tea:"food", thirsty:"food", tomato:"food", vegetable:"food", water:"food",
+  bean:"food", butter:"food", candy:"food", carrot:"food", cereal:"food", cherry:"food",
+  corn:"food", cream:"food", cucumber:"food", dessert:"food", flour:"food", grape:"food",
+  honey:"food", jam:"food", lamb:"food", lemonade:"food", lettuce:"food", loaf:"food",
+  mushroom:"food", noodle:"food", nut:"food", oil:"food", onion:"food", pea:"food",
+  peach:"food", peanut:"food", pear:"food", pepper:"food", pie:"food", pineapple:"food",
+  popcorn:"food", pork:"food", potato:"food", pumpkin:"food", salad:"food", sausage:"food",
+  snack:"food", strawberry:"food", toast:"food", tuna:"food", turkey:"food", yoghurt:"food",
+  // 动物(Animals)
+  animal:"animal", bear:"animal", bird:"animal", cat:"animal", chicken:"animal", cow:"animal",
+  dog:"animal", duck:"animal", elephant:"animal", fish:"animal", fly:"animal", frog:"animal",
+  horse:"animal", mouse:"animal", pet:"animal", pig:"animal", rabbit:"animal", sheep:"animal",
+  snake:"animal", tiger:"animal", whale:"animal", wing:"animal",
+  // 动作(Actions)
+  act:"action", add:"action", answer:"action", arrive:"action", ask:"action",
+  begin:"action", break:"action", bring:"action", build:"action", buy:"action",
+  call:"action", carry:"action", catch:"action", change:"action", choose:"action",
+  clean:"action", climb:"action", close:"action", come:"action", cook:"action",
+  copy:"action", count:"action", cross:"action", cry:"action", cut:"action",
+  dance:"action", decide:"action", do:"action", draw:"action", drink:"action",
+  drive:"action", drop:"action", eat:"action", enjoy:"action", fall:"action",
+  feel:"action", fetch:"action", fight:"action", fill:"action", find:"action",
+  finish:"action", fit:"action", fly:"action", follow:"action", forget:"action",
+  get:"action", give:"action", go:"action", grow:"action", guess:"action",
+  happen:"action", hate:"action", have:"action", hear:"action", help:"action",
+  hide:"action", hit:"action", hold:"action", hope:"action", hurry:"action",
+  hurt:"action", jump:"action", keep:"action", kick:"action", kill:"action",
+  know:"action", land:"action", laugh:"action", learn:"action", leave:"action",
+  lend:"action", let:"action", lie:"action", lift:"action", like:"action",
+  listen:"action", live:"action", look:"action", lose:"action", love:"action",
+  make:"action", manage:"action", match:"action", matter:"action", mean:"action",
+  meet:"action", mend:"action", miss:"action", mix:"action", move:"action",
+  need:"action", note:"action", notice:"action", offer:"action", open:"action",
+  order:"action", paint:"action", pass:"action", pay:"action", pick:"action",
+  plan:"action", play:"action", point:"action", pour:"action", prefer:"action",
+  prepare:"action", press:"action", print:"action", promise:"action", pull:"action",
+  push:"action", put:"action", reach:"action", read:"action", receive:"action",
+  remember:"action", repair:"action", repeat:"action", replace:"action", report:"action",
+  require:"action", rest:"action", return:"action", ride:"action", ring:"action",
+  rise:"action", roll:"action", run:"action", save:"action", say:"action",
+  search:"action", see:"action", sell:"action", send:"action", serve:"action",
+  set:"action", shake:"action", share:"action", shine:"action", shoot:"action",
+  shop:"action", show:"action", shut:"action", sing:"action", sit:"action",
+  sleep:"action", smell:"action", smile:"action", solve:"action", sort:"action",
+  speak:"action", spend:"action", spread:"action", stand:"action", start:"action",
+  stay:"action", steal:"action", step:"action", stop:"action", study:"action",
+  swim:"action", take:"action", talk:"action", taste:"action", teach:"action",
+  tell:"action", test:"action", think:"action", throw:"action", tidy:"action",
+  touch:"action", train:"action", travel:"action", treat:"action", try:"action",
+  turn:"action", understand:"action", use:"action", visit:"action", wait:"action",
+  wake:"action", walk:"action", want:"action", wash:"action", watch:"action",
+  wave:"action", wear:"action", win:"action", wish:"action", work:"action",
+  worry:"action", write:"action",
+  // 场所(Places)
+  airport:"place", bank:"place", bathroom:"place", beach:"place", bedroom:"place",
+  bookshop:"place", bridge:"place", building:"place", bus:"place", camp:"place",
+  castle:"place", church:"place", cinema:"place", city:"place", classroom:"place",
+  club:"place", corner:"place", country:"place", desk:"place", door:"place",
+  farm:"place", field:"place", flat:"place", floor:"place", forest:"place",
+  garden:"place", ground:"place", gym:"place", hall:"place", hill:"place",
+  home:"place", hospital:"place", hotel:"place", house:"place", island:"place",
+  lake:"place", library:"place", market:"place", mountain:"place", museum:"place",
+  office:"place", park:"place", place:"place", playground:"place", pool:"place",
+  restaurant:"place", river:"place", road:"place", room:"place", school:"place",
+  sea:"place", shop:"place", station:"place", street:"place", supermarket:"place",
+  town:"place", village:"place", wall:"place", window:"place", world:"place",
+  // 时间(Time)
+  afternoon:"time", April:"time", August:"time", autumn:"time", birthday:"time",
+  clock:"time", date:"time", day:"time", December:"time", evening:"time",
+  February:"time", Friday:"time", half:"time", holiday:"time", hour:"time",
+  January:"time", July:"time", June:"time", March:"time", May:"time",
+  midnight:"time", minute:"time", Monday:"time", month:"time", morning:"time",
+  night:"time", November:"time", October:"time", oclock:"time", past:"time",
+  present:"time", quarter:"time", Saturday:"time", season:"time", second:"time",
+  September:"time", spring:"time", summer:"time", Sunday:"time", Thursday:"time",
+  time:"time", today:"time", tomorrow:"time", Tuesday:"time", Wednesday:"time",
+  week:"time", winter:"time", year:"time", yesterday:"time",
+  Mon:"time", Tue:"time", Wed:"time", Thu:"time", Fri:"time", Sat:"time", Sun:"time",
+  Jan:"time", Feb:"time", Mar:"time", Apr:"time", Jun:"time", Jul:"time", Aug:"time",
+  Sep:"time", Oct:"time", Nov:"time", Dec:"time",
+  // 衣物(Clothes)
+  bag:"clothes", belt:"clothes", boots:"clothes", cap:"clothes", clothes:"clothes",
+  coat:"clothes", dress:"clothes", glove:"clothes", hat:"clothes", jacket:"clothes",
+  jeans:"clothes", pocket:"clothes", purse:"clothes", scarf:"clothes", shirt:"clothes",
+  shoe:"clothes", skirt:"clothes", sock:"clothes", suit:"clothes", tie:"clothes",
+  trousers:"clothes", umbrella:"clothes", uniform:"clothes", wallet:"clothes",
+  watch:"clothes",
+  // 身体(Body)
+  arm:"body", back:"body", body:"body", bone:"body", ear:"body", eye:"body",
+  face:"body", finger:"body", foot:"body", hair:"body", hand:"body", head:"body",
+  heart:"body", knee:"body", leg:"body", mouth:"body", neck:"body", nose:"body",
+  shoulder:"body", skin:"body", tooth:"body",
+  // 交通(Transport)
+  bicycle:"transport", bike:"transport", boat:"transport", bus:"transport",
+  car:"transport", drive:"transport", lorry:"transport", motorbike:"transport",
+  plane:"transport", ship:"transport", station:"transport", taxi:"transport",
+  traffic:"transport", train:"transport", transport:"transport",
+  // 颜色(Colors)
+  black:"color", blue:"color", brown:"color", colour:"color", golden:"color",
+  green:"color", grey:"color", pink:"color", purple:"color", red:"color",
+  silver:"color", white:"color", yellow:"color",
+  gray:"color", dark:"color", light:"color", bright:"color",
+  pale:"color", deep:"color", gold:"color", rose:"color", lime:"color",
+  violet:"color", indigo:"color", tan:"color", navy:"color",
+  coral:"color", olive:"color", mint:"color", lavender:"color", maroon:"color",
+  peach:"color", salmon:"color", teal:"color", turquoise:"color", ruby:"color",
+  // 家庭/人(People)
+  aunt:"people", baby:"people", boy:"people", brother:"people", child:"people",
+  cousin:"people", daughter:"people", family:"people", father:"people", friend:"people",
+  girl:"people", grandparent:"people", husband:"people", man:"people", mother:"people",
+  neighbour:"people", parent:"people", person:"people", sister:"people", son:"people",
+  uncle:"people", wife:"people", woman:"people",
+  // 形容词(Adjectives)
+  afraid:"adj", angry:"adj", bad:"adj", beautiful:"adj", big:"adj",
+  brave:"adj", bright:"adj", busy:"adj", careful:"adj", cheap:"adj",
+  clean:"adj", clear:"adj", clever:"adj", closed:"adj", cold:"adj",
+  comfortable:"adj", common:"adj", correct:"adj", dangerous:"adj", dark:"adj",
+  dead:"adj", delicious:"adj", different:"adj", difficult:"adj", dirty:"adj",
+  dry:"adj", early:"adj", easy:"adj", empty:"adj", expensive:"adj",
+  fair:"adj", false:"adj", fast:"adj", fat:"adj", fine:"adj",
+  first:"adj", flat:"adj", foreign:"adj", free:"adj", fresh:"adj",
+  friendly:"adj", front:"adj", full:"adj", funny:"adj", glad:"adj",
+  good:"adj", grand:"adj", great:"adj", happy:"adj", hard:"adj",
+  healthy:"adj", heavy:"adj", high:"adj", hot:"adj", huge:"adj",
+  hungry:"adj", ill:"adj", important:"adj", interested:"adj", interesting:"adj",
+  juicy:"adj", kind:"adj", large:"adj", last:"adj", late:"adj",
+  lazy:"adj", left:"adj", light:"adj", little:"adj", long:"adj",
+  loud:"adj", lovely:"adj", low:"adj", lucky:"adj",
+  many:"adj", modern:"adj", much:"adj", narrow:"adj", natural:"adj",
+  near:"adj", necessary:"adj", new:"adj", next:"adj", nice:"adj",
+  normal:"adj", old:"adj", open:"adj", own:"adj", perfect:"adj",
+  pleasant:"adj", polite:"adj", poor:"adj", popular:"adj", possible:"adj",
+  pretty:"adj", proud:"adj", quick:"adj", quiet:"adj", rapid:"adj",
+  rare:"adj", ready:"adj", real:"adj", recent:"adj", rich:"adj",
+  right:"adj", ripe:"adj", round:"adj", rude:"adj", sad:"adj",
+  safe:"adj", same:"adj", second:"adj", serious:"adj", several:"adj",
+  sharp:"adj", short:"adj", sick:"adj", similar:"adj", simple:"adj",
+  single:"adj", slow:"adj", small:"adj", soft:"adj", special:"adj",
+  straight:"adj", strange:"adj", strong:"adj", stupid:"adj", sudden:"adj",
+  suitable:"adj", sure:"adj", sweet:"adj", swift:"adj", tall:"adj",
+  terrible:"adj", thick:"adj", thin:"adj", thirsty:"adj", tidy:"adj",
+  tight:"adj", tiny:"adj", tired:"adj", top:"adj", total:"adj",
+  true:"adj", ugly:"adj", unable:"adj", useful:"adj", usual:"adj",
+  valuable:"adj", various:"adj", warm:"adj", weak:"adj", wet:"adj",
+  wide:"adj", wild:"adj", wise:"adj", wonderful:"adj", wooden:"adj",
+  worried:"adj", worth:"adj", wrong:"adj", young:"adj",
+};
+
+const THEME_LABELS = {
+  food:"🍔 食物", animal:"🐾 动物", action:"⚡ 动作", place:"🏠 场所",
+  time:"⏰ 时间", clothes:"👕 衣物", body:"🦶 身体", transport:"🚗 交通",
+  color:"🎨 颜色", people:"👨‍👩‍👧 人物", adj:"🏷️ 形容词"
+};
+
+function getWordTheme(w) {
+  const key = w.toLowerCase().replace(/[^a-z]/g, '');
+  return WORD_THEMES[key] || 'other';
+}
+
+const THEME_ORDER = ['food','animal','action','place','time','clothes','body','transport','color','people','adj','other'];
+const THEME_LABELS_ALL = {...THEME_LABELS, other:"📦 其他"};
+
 
 const ALL_WORDS = typeof KET_WORDS_A !== 'undefined' ? KET_WORDS_A : [];
 
@@ -533,7 +717,15 @@ function renderHome() {
   }
   document.getElementById('streak-count').textContent = `连续 ${streak} 天`;
 
-  renderBadges();
+  document.getElementById('home-today-count').textContent = todayDoneCount;
+
+  let mastered = 0;
+  const wStats = data.wordStats || {};
+  for (const v of Object.values(wStats)) if (v.mastered) mastered++;
+  document.getElementById('home-mastered-count').textContent = mastered;
+
+  const dl = data.dailyLog || [];
+  document.getElementById('home-total-count').textContent = dl.length;
 }
 
 function countReview() {
@@ -552,22 +744,7 @@ function countReview() {
   return count;
 }
 
-function renderBadges() {
-  const grid = document.getElementById('badge-grid');
-  const badges = [
-    { id: 'first', icon: '🌟', name: '初次学习', check: () => data.dailyLog && data.dailyLog.length > 0 },
-    { id: 'week', icon: '🔥', name: '连续7天', check: () => { let s = 0; if (!data.dailyLog) return false; const d = [...data.dailyLog].sort().reverse(); const c = new Date(today()); for (let i = 0; i < 365; i++) { const ds = c.toISOString().slice(0, 10); if (d.includes(ds)) s++; else if (ds !== today()) break; c.setDate(c.getDate() - 1); } return s >= 7; } },
-    { id: 'ten', icon: '📖', name: '掌握10词', check: () => { let m = 0; const s = data.wordStats || {}; for (const v of Object.values(s)) if (v.mastered) m++; return m >= 10; } },
-    { id: 'fifty', icon: '🏆', name: '掌握50词', check: () => { let m = 0; const s = data.wordStats || {}; for (const v of Object.values(s)) if (v.mastered) m++; return m >= 50; } },
-    { id: 'hundred', icon: '👑', name: '掌握100词', check: () => { let m = 0; const s = data.wordStats || {}; for (const v of Object.values(s)) if (v.mastered) m++; return m >= 100; } },
-    { id: 'perfect', icon: '💯', name: '全对一次', check: () => { const s = data.session || {}; return s.correct === s.count && s.count > 0; } },
-    { id: 'star', icon: '⭐', name: '收藏5词', check: () => { const s = data.starred || {}; return Object.keys(s).length >= 5; } },
-  ];
-  grid.innerHTML = badges.map(b => {
-    const unlocked = b.check();
-    return `<div class="badge ${unlocked ? 'unlocked' : ''}" title="${b.name}">${unlocked ? b.icon : '🔒'}</div>`;
-  }).join('');
-}
+
 
 /* ========== LEARN ========== */
 function startLearning() {
@@ -584,38 +761,44 @@ function startLearningDetail() {
 }
 
 function renderTodayWordOverview() {
-  const grid = document.getElementById('today-word-grid');
-  const words = data.todayWords || [];
-  const todayDone = data.todayDone || {};
-  grid.innerHTML = words.map(w => {
-    const wd = getWordData(w);
-    if (!wd) return '';
-    const done = todayDone[w];
-    return `<div class="word-chip ${done ? 'learned' : ''}" onclick="speak('${w}',1)">
-      ${w}
-    </div>`;
-  }).join('');
-}
+    const grid = document.getElementById('today-word-grid');
+    const words = data.todayWords || [];
+    const todayDone = data.todayDone || {};
+    grid.innerHTML = words.map(w => {
+      const wd = getWordData(w);
+      if (!wd) return '';
+      const done = todayDone[w];
+      return `<div class="flex items-center justify-between rounded-xl px-3 py-2 ${done ? 'bg-green-50' : 'bg-gray-50'} mb-1" onclick="speak('${w}',1)" style="cursor:pointer">
+        <div>
+          <span class="font-bold text-gray-800">${w}</span>
+          <span class="text-gray-500 ml-2">${wd.m || ''}</span>
+        </div>
+        <span class="text-xs ${done ? 'text-green-500' : 'text-gray-300'}">${done ? '✅' : '🔊'}</span>
+      </div>`;
+    }).join('');
+  }
 
 function renderLearnWord() {
-  if (currentWordIdx >= sessionWords.length) {
-    showLearnComplete();
-    return;
-  }
-  const w = sessionWords[currentWordIdx];
-  const wd = getWordData(w);
-  if (!wd) { currentWordIdx++; renderLearnWord(); return; }
-  document.getElementById('learn-word').textContent = wd.w;
-  document.getElementById('learn-phonetic').textContent = wd.ph || '';
-  document.getElementById('learn-pos').textContent = wd.p || '';
-  document.getElementById('learn-meaning').textContent = wd.m || '';
-  document.getElementById('learn-example').textContent = wd.ex || '';
-  speak(wd.w, 1);
+    if (currentWordIdx >= sessionWords.length) {
+      showLearnComplete();
+      return;
+    }
+    const w = sessionWords[currentWordIdx];
+    const wd = getWordData(w);
+    if (!wd) { currentWordIdx++; renderLearnWord(); return; }
+    document.getElementById('learn-word').textContent = wd.w;
+    document.getElementById('learn-phonetic').textContent = wd.ph || '';
+    document.getElementById('learn-pos').textContent = wd.p || '';
+    document.getElementById('learn-meaning').textContent = wd.m || '';
+    document.getElementById('learn-example').textContent = wd.ex || '';
+    speak(wd.w, 1);
 
-  const total = sessionWords.length;
-  document.getElementById('learn-progress-bar').style.width = (currentWordIdx / total * 100) + '%';
-  document.getElementById('learn-progress-text').textContent = `${currentWordIdx + 1} / ${total}`;
-}
+    document.getElementById('btn-prev').style.display = currentWordIdx > 0 ? '' : 'none';
+
+    const total = sessionWords.length;
+    document.getElementById('learn-progress-bar').style.width = (currentWordIdx / total * 100) + '%';
+    document.getElementById('learn-progress-text').textContent = `${currentWordIdx + 1} / ${total}`;
+  }
 
 function showLearnComplete() {
   document.getElementById('learn-word').textContent = '🎉 完成！';
@@ -850,42 +1033,42 @@ function renderStats() {
   const grid = document.getElementById('mastery-grid');
   const wStats = data.wordStats || {};
 
-  const parts = ['n.', 'v.', 'adj.', 'adv.', 'prep.', 'conj.', 'pron.'];
   const tabsEl = document.getElementById('category-tabs');
-  const summaryEl = document.getElementById('category-summary');
-  if (!window._currentCategory) window._currentCategory = 'all';
+    const summaryEl = document.getElementById('category-summary');
+    if (!window._currentCategory) window._currentCategory = 'all';
 
-  tabsEl.innerHTML = `<span class="cat-tab ${window._currentCategory === 'all' ? 'active' : ''}" data-cat="all">全部</span>` +
-    parts.map(p => `<span class="cat-tab ${window._currentCategory === p ? 'active' : ''}" data-cat="${p}">${p}</span>`).join('');
-  tabsEl.querySelectorAll('.cat-tab').forEach(tab => {
-    tab.onclick = () => {
-      window._currentCategory = tab.dataset.cat;
-      renderMasteryGrid();
-    };
-  });
+    tabsEl.innerHTML = `<span class="cat-tab ${window._currentCategory === 'all' ? 'active' : ''}" data-cat="all">📚 全部</span>` +
+      THEME_ORDER.map(t => `<span class="cat-tab ${window._currentCategory === t ? 'active' : ''}" data-cat="${t}">${THEME_LABELS_ALL[t] || t}</span>`).join('');
+    tabsEl.querySelectorAll('.cat-tab').forEach(tab => {
+      tab.onclick = () => {
+        window._currentCategory = tab.dataset.cat;
+        renderMasteryGrid();
+      };
+    });
 
-  renderMasteryGrid();
+    renderMasteryGrid();
 
-  function renderMasteryGrid() {
-    const cat = window._currentCategory || 'all';
-    tabsEl.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+    function renderMasteryGrid() {
+      const cat = window._currentCategory || 'all';
+      tabsEl.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
 
-    const filtered = cat === 'all' ? ALL_WORDS : ALL_WORDS.filter(w => w.p === cat);
-    const catLearned = filtered.filter(w => wStats[w.w] && !wStats[w.w].mastered && (wStats[w.w].reviewCount || wStats[w.w].wrongCount)).length;
-    const catMastered = filtered.filter(w => wStats[w.w] && wStats[w.w].mastered).length;
-    const catTotal = filtered.length;
-    summaryEl.textContent = cat === 'all' ? '' : `${cat}：共 ${catTotal} 词，学习中 ${catLearned}，已掌握 ${catMastered}，未学 ${catTotal - catLearned - catMastered}`;
+      const filtered = cat === 'all' ? ALL_WORDS : ALL_WORDS.filter(w => getWordTheme(w.w) === cat);
+      const catLearned = filtered.filter(w => wStats[w.w] && !wStats[w.w].mastered && (wStats[w.w].reviewCount || wStats[w.w].wrongCount)).length;
+      const catMastered = filtered.filter(w => wStats[w.w] && wStats[w.w].mastered).length;
+      const catTotal = filtered.length;
+      const label = cat === 'all' ? '' : (THEME_LABELS_ALL[cat] || cat);
+      summaryEl.textContent = cat === 'all' ? '' : `${label}：共 ${catTotal} 词，学习中 ${catLearned}，已掌握 ${catMastered}，未学 ${catTotal - catLearned - catMastered}`;
 
-    grid.innerHTML = filtered.map(w => {
-      const s = wStats[w.w];
-      let cls = 'word-chip';
-      if (!s) cls += '';
-      else if (s.mastered) cls += ' mastered';
-      else if (s.wrongCount > 0 || s.reviewCount) cls += ' wrong';
-      else cls += ' learned';
-      return `<div class="${cls}" title="${w.w}: ${w.m}">${w.w}</div>`;
-    }).join('');
-  }
+      grid.innerHTML = filtered.map(w => {
+        const s = wStats[w.w];
+        let cls = 'word-chip';
+        if (!s) cls += '';
+        else if (s.mastered) cls += ' mastered';
+        else if (s.wrongCount > 0 || s.reviewCount) cls += ' wrong';
+        else cls += ' learned';
+        return `<div class="${cls}" title="${w.w}: ${w.m}">${w.w}</div>`;
+      }).join('');
+    }
 
   const wrongRank = document.getElementById('wrong-ranking');
   const wrongSorted = Object.entries(wStats)
@@ -1050,6 +1233,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderLearnWord();
   };
 
+  document.getElementById('btn-prev').onclick = () => {
+    if (currentWordIdx > 0) {
+      currentWordIdx--;
+      renderLearnWord();
+    }
+  };
+
   document.getElementById('btn-quiz-hint1').onclick = () => {
     const w = sessionWords[currentWordIdx];
     const wd = getWordData(w);
@@ -1203,6 +1393,21 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-import-data').onclick = () => document.getElementById('import-file').click();
   document.getElementById('import-file').onchange = importData;
   document.getElementById('btn-reset-data').onclick = resetData;
+
+    document.getElementById('btn-reset-records').onclick = () => {
+      if (confirm('确定要重置学习记录吗？这将清除所有学习进度、单词统计和错题数据，但保留每日打卡记录。')) {
+        data.wordStats = {};
+        data.session = { date: '', count: 0, correct: 0 };
+        data.todayWords = [];
+        data.todayDone = {};
+        data.wrong = {};
+        data.starred = {};
+        data.history = {};
+        saveData();
+        alert('✅ 学习记录已重置！');
+        renderHome();
+      }
+    };
 
   document.getElementById('btn-quiz-next').onclick = null;
 });
