@@ -120,9 +120,20 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
     </div>
   </div>
 
+  <div class="page" id="page-learn-overview">
+    <div class="flex items-center gap-3 mb-4">
+      <button class="kid-btn small outline" id="btn-back-home-lo">← 返回</button>
+      <h2 class="font-bold text-xl text-gray-700 flex-1">今日单词概览</h2>
+    </div>
+    <div class="card mb-4">
+      <div class="word-grid" id="today-word-grid"></div>
+    </div>
+    <button class="kid-btn w-full justify-center" id="btn-start-learn-detail"><span>📖</span> 开始学习</button>
+  </div>
+  
   <div class="page" id="page-learn">
     <div class="flex items-center gap-3 mb-4">
-      <button class="kid-btn small outline" id="btn-back-home-l">← 返回</button>
+      <button class="kid-btn small outline" id="btn-back-to-overview">← 单词表</button>
       <div class="flex-1">
         <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
           <div class="h-full bg-blue-500 rounded-full transition-all" id="learn-progress-bar" style="width:0%"></div>
@@ -134,26 +145,18 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       <div class="word-display" id="learn-word">hello</div>
       <div class="phonetic-display" id="learn-phonetic">/həˈləʊ/</div>
       <div class="flex justify-center gap-2 mb-3">
-        <button class="kid-btn small" id="btn-play-word"><span>🔊</span> 发音</button>
-        <button class="kid-btn small green" id="btn-play-slow"><span>🐢</span> 慢速</button>
+        <button class="kid-btn" id="btn-play-word"><span>🔊</span> 发音</button>
       </div>
       <div class="grid grid-cols-2 gap-3 text-left max-w-sm mx-auto mb-3">
         <div class="bg-blue-50 rounded-xl p-3"><div class="text-xs text-gray-400">词性</div><div class="font-bold" id="learn-pos">v.</div></div>
         <div class="bg-blue-50 rounded-xl p-3"><div class="text-xs text-gray-400">释义</div><div class="font-bold text-lg" id="learn-meaning">你好</div></div>
-        <div class="bg-blue-50 rounded-xl p-3 col-span-2"><div class="text-xs text-gray-400">搭配</div><div class="font-semibold" id="learn-collocation">say hello</div></div>
       </div>
       <div class="bg-yellow-50 rounded-xl p-3 mb-3 text-left max-w-sm mx-auto">
         <div class="text-xs text-gray-400 mb-1">📝 例句</div>
         <div class="font-medium text-sm" id="learn-example">Hello, my name is Tom.</div>
       </div>
-      <div class="hint-bar text-left max-w-sm mx-auto mb-3">
-        <span class="font-bold">💡 音节：</span><span id="learn-syllables">hel-lo</span>
-        <br>
-        <span class="font-bold">🌟 小贴士：</span><span id="learn-tip">hi=你好（更随意）</span>
-      </div>
       <div class="flex gap-2 justify-center">
-        <button class="kid-btn green" id="btn-know">😊 记住了</button>
-        <button class="kid-btn orange" id="btn-still-learning">🤔 再练练</button>
+        <button class="kid-btn green" id="btn-know">➡️ 下一个</button>
       </div>
     </div>
   </div>
@@ -220,11 +223,23 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       <button class="kid-btn small outline" id="btn-back-home-st">← 返回</button>
       <h2 class="font-bold text-xl text-gray-700">📊 学习统计</h2>
     </div>
-    <div class="stats-grid mb-4">
-      <div class="stat-card"><div class="num" id="stat-total-days">0</div><div class="label">打卡天数</div></div>
-      <div class="stat-card"><div class="num" id="stat-total-words">0</div><div class="label">已学单词</div></div>
-      <div class="stat-card"><div class="num" id="stat-accuracy">0%</div><div class="label">平均正确率</div></div>
-      <div class="stat-card"><div class="num" id="stat-streak">0</div><div class="label">连续打卡</div></div>
+    <div class="card mb-4">
+      <h3 class="font-bold text-gray-700 mb-3">📅 今日统计</h3>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="num" id="stat-today-done">0</div><div class="label">今日已学</div></div>
+        <div class="stat-card"><div class="num" id="stat-today-target">0</div><div class="label">今日目标</div></div>
+        <div class="stat-card"><div class="num" id="stat-today-accuracy">0%</div><div class="label">今日正确率</div></div>
+        <div class="stat-card"><div class="num" id="stat-today-progress">0%</div><div class="label">今日进度</div></div>
+      </div>
+    </div>
+    <div class="card mb-4">
+      <h3 class="font-bold text-gray-700 mb-3">📊 总体统计</h3>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="num" id="stat-total-days">0</div><div class="label">打卡天数</div></div>
+        <div class="stat-card"><div class="num" id="stat-total-words">0</div><div class="label">已学单词</div></div>
+        <div class="stat-card"><div class="num" id="stat-accuracy">0%</div><div class="label">平均正确率</div></div>
+        <div class="stat-card"><div class="num" id="stat-streak">0</div><div class="label">连续打卡</div></div>
+      </div>
     </div>
     <div class="card mb-4">
       <h3 class="font-bold text-gray-700 mb-3">📈 本周趋势</h3>
@@ -244,6 +259,10 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
     <div class="card mb-4">
       <h3 class="font-bold text-gray-700 mb-3">🔝 易错词排行</h3>
       <div id="wrong-ranking" class="space-y-2"></div>
+    </div>
+    <div class="card mb-4">
+      <h3 class="font-bold text-gray-700 mb-3">📅 打卡记录</h3>
+      <div id="daily-records" class="space-y-2"></div>
     </div>
     <div class="card">
       <h3 class="font-bold text-gray-700 mb-3">💾 数据管理</h3>
@@ -344,12 +363,13 @@ function saveSettings(s) {
 
 function newData() {
   return {
-    version: 2,
+    version: 3,
     learned: {}, today: {}, history: {},
     wrong: {}, starred: {}, badges: {},
     wordStats: {},
     session: { date: '', count: 0, correct: 0 },
     dailyLog: [],
+    dailyRecords: {},
     todayWords: [],
     todayDone: {}
   };
@@ -399,6 +419,17 @@ function initSession() {
     data.session = { date: t, count: 0, correct: 0 };
     data.todayWords = [];
     data.todayDone = {};
+    if (!data.dailyRecords) data.dailyRecords = {};
+    if (!data.dailyRecords[t]) {
+      data.dailyRecords[t] = {
+        date: t,
+        wordsLearned: 0,
+        wordsReviewed: 0,
+        correct: 0,
+        total: 0,
+        duration: 0
+      };
+    }
     saveData();
   }
   if (data.todayWords && data.todayWords.length > 0) {
@@ -542,8 +573,28 @@ function renderBadges() {
 function startLearning() {
   initSession();
   isLearningMode = true;
+  renderTodayWordOverview();
+  showPage('learn-overview');
+}
+
+function startLearningDetail() {
+  currentWordIdx = 0;
   showPage('learn');
   renderLearnWord();
+}
+
+function renderTodayWordOverview() {
+  const grid = document.getElementById('today-word-grid');
+  const words = data.todayWords || [];
+  const todayDone = data.todayDone || {};
+  grid.innerHTML = words.map(w => {
+    const wd = getWordData(w);
+    if (!wd) return '';
+    const done = todayDone[w];
+    return `<div class="word-chip ${done ? 'learned' : ''}" onclick="speak('${w}',1)">
+      ${w}
+    </div>`;
+  }).join('');
 }
 
 function renderLearnWord() {
@@ -558,11 +609,7 @@ function renderLearnWord() {
   document.getElementById('learn-phonetic').textContent = wd.ph || '';
   document.getElementById('learn-pos').textContent = wd.p || '';
   document.getElementById('learn-meaning').textContent = wd.m || '';
-  const col = wd.col || '';
-  document.getElementById('learn-collocation').textContent = col;
   document.getElementById('learn-example').textContent = wd.ex || '';
-  document.getElementById('learn-syllables').textContent = wd.sy || wd.w;
-  document.getElementById('learn-tip').textContent = wd.tip || '';
   speak(wd.w, 1);
 
   const total = sessionWords.length;
@@ -577,7 +624,6 @@ function showLearnComplete() {
     if (el.id !== 'learn-word' && el.id !== 'learn-phonetic') el.style.display = 'none';
   });
   document.getElementById('btn-know').style.display = 'none';
-  document.getElementById('btn-still-learning').style.display = 'none';
   const btn = document.createElement('button');
   btn.className = 'kid-btn w-full justify-center mt-4';
   btn.innerHTML = '<span>🏠</span> 返回首页';
@@ -625,24 +671,33 @@ function getHint(wd, level) {
   const word = wd.w;
   const len = word.length;
   
-  hints.push(`💡 音节拆分：${wd.sy || word}`);
-  hints.push(`💡 首字母：${word[0]}，尾字母：${word[len - 1]}`);
-  hints.push(`💡 字母数量：${len} 个字母`);
+  // 提示1：开头2个字母
+  let hint1 = '';
+  for (let i = 0; i < len; i++) {
+    hint1 += (i < 2) ? word[i] : '_';
+  }
+  hints.push(`💡 提示：${hint1}`);
   
+  // 提示2：开头2个 + 末尾1个
   if (len > 3) {
-    const partial1 = word[0] + '_'.repeat(len - 2) + word[len - 1];
-    hints.push(`💡 部分拼写：${partial1}`);
+    let hint2 = '';
+    for (let i = 0; i < len; i++) {
+      hint2 += (i < 2 || i === len - 1) ? word[i] : '_';
+    }
+    hints.push(`💡 更多提示：${hint2}`);
   }
   
-  if (len > 4) {
-    const middleIndex = Math.floor(len / 2);
-    let partial2 = word[0];
-    for (let i = 1; i < len - 1; i++) {
-      partial2 += i === middleIndex ? word[i] : '_';
+  // 提示3：开头3个 + 末尾2个
+  if (len > 5) {
+    let hint3 = '';
+    for (let i = 0; i < len; i++) {
+      hint3 += (i < 3 || i >= len - 2) ? word[i] : '_';
     }
-    partial2 += word[len - 1];
-    hints.push(`💡 更多字母：${partial2}`);
+    hints.push(`💡 更多提示：${hint3}`);
   }
+  
+  // 音节拆分提示放在最后
+  hints.push(`💡 音节拆分：${wd.sy || word}`);
   
   return hints;
 }
@@ -752,6 +807,18 @@ function renderStats() {
   }
   const acc = totalAttempts > 0 ? Math.round(totalCorrect / totalAttempts * 100) : 0;
 
+  const todayDone = data.todayDone || {};
+  const todayDoneCount = Object.keys(todayDone).length;
+  const dc = settings.dailyCount;
+  const todayPct = dc ? Math.min(100, Math.round(todayDoneCount / dc * 100)) : 0;
+  const todaySession = data.session || {};
+  const todayAcc = todaySession.count > 0 ? Math.round(todaySession.correct / todaySession.count * 100) : 0;
+
+  document.getElementById('stat-today-done').textContent = todayDoneCount;
+  document.getElementById('stat-today-target').textContent = dc;
+  document.getElementById('stat-today-accuracy').textContent = todayAcc + '%';
+  document.getElementById('stat-today-progress').textContent = todayPct + '%';
+
   document.getElementById('stat-total-days').textContent = dailyLog.length;
   document.getElementById('stat-total-words').textContent = `${learned} / ${total}`;
   document.getElementById('stat-accuracy').textContent = acc + '%';
@@ -783,13 +850,13 @@ function renderStats() {
   const grid = document.getElementById('mastery-grid');
   const wStats = data.wordStats || {};
 
-  const letters = [...new Set(ALL_WORDS.map(w => w.w.charAt(0).toUpperCase()))].sort();
+  const parts = ['n.', 'v.', 'adj.', 'adv.', 'prep.', 'conj.', 'pron.'];
   const tabsEl = document.getElementById('category-tabs');
   const summaryEl = document.getElementById('category-summary');
   if (!window._currentCategory) window._currentCategory = 'all';
 
   tabsEl.innerHTML = `<span class="cat-tab ${window._currentCategory === 'all' ? 'active' : ''}" data-cat="all">全部</span>` +
-    letters.map(l => `<span class="cat-tab ${window._currentCategory === l ? 'active' : ''}" data-cat="${l}">${l}</span>`).join('');
+    parts.map(p => `<span class="cat-tab ${window._currentCategory === p ? 'active' : ''}" data-cat="${p}">${p}</span>`).join('');
   tabsEl.querySelectorAll('.cat-tab').forEach(tab => {
     tab.onclick = () => {
       window._currentCategory = tab.dataset.cat;
@@ -803,11 +870,11 @@ function renderStats() {
     const cat = window._currentCategory || 'all';
     tabsEl.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
 
-    const filtered = cat === 'all' ? ALL_WORDS : ALL_WORDS.filter(w => w.w.charAt(0).toUpperCase() === cat);
+    const filtered = cat === 'all' ? ALL_WORDS : ALL_WORDS.filter(w => w.p === cat);
     const catLearned = filtered.filter(w => wStats[w.w] && !wStats[w.w].mastered && (wStats[w.w].reviewCount || wStats[w.w].wrongCount)).length;
     const catMastered = filtered.filter(w => wStats[w.w] && wStats[w.w].mastered).length;
     const catTotal = filtered.length;
-    summaryEl.textContent = cat === 'all' ? '' : `${cat} 开头：共 ${catTotal} 词，学习中 ${catLearned}，已掌握 ${catMastered}，未学 ${catTotal - catLearned - catMastered}`;
+    summaryEl.textContent = cat === 'all' ? '' : `${cat}：共 ${catTotal} 词，学习中 ${catLearned}，已掌握 ${catMastered}，未学 ${catTotal - catLearned - catMastered}`;
 
     grid.innerHTML = filtered.map(w => {
       const s = wStats[w.w];
@@ -833,6 +900,29 @@ function renderStats() {
       return `<div class="flex items-center justify-between bg-orange-50 rounded-xl p-3">
         <div><span class="font-bold">${wd ? wd.w : w}</span> <span class="text-sm text-gray-500">${wd ? wd.m : ''}</span></div>
         <span class="text-sm text-orange-500 font-bold">错 ${v.wrongCount} 次</span>
+      </div>`;
+    }).join('');
+  }
+
+  const recordsEl = document.getElementById('daily-records');
+  const records = data.dailyRecords ? Object.values(data.dailyRecords).sort((a, b) => b.date.localeCompare(a.date)) : [];
+  if (records.length === 0) {
+    recordsEl.innerHTML = '<p class="text-gray-400 text-center py-4">暂无打卡记录，开始学习吧！</p>';
+  } else {
+    recordsEl.innerHTML = records.map(r => {
+      const acc = r.total > 0 ? Math.round(r.correct / r.total * 100) : 0;
+      return `<div class="flex items-center justify-between bg-blue-50 rounded-xl p-3">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">✅</span>
+          <div>
+            <div class="font-bold">${r.date}</div>
+            <div class="text-xs text-gray-500">学习 ${r.wordsLearned} 词，复习 ${r.wordsReviewed} 词</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="font-bold text-blue-600">${r.correct}/${r.total}</div>
+          <div class="text-xs text-gray-500">正确率 ${acc}%</div>
+        </div>
       </div>`;
     }).join('');
   }
@@ -911,22 +1001,20 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-stats').onclick = () => { renderStats(); showPage('stats'); };
   document.getElementById('btn-settings').onclick = () => { applySettings(); showPage('settings'); };
 
-  document.getElementById('btn-back-home-l').onclick = () => { renderHome(); showPage('home'); };
+  document.getElementById('btn-back-home-lo').onclick = () => { renderHome(); showPage('home'); };
+  document.getElementById('btn-back-to-overview').onclick = () => { renderTodayWordOverview(); showPage('learn-overview'); };
   document.getElementById('btn-back-home-q').onclick = () => { renderHome(); showPage('home'); };
   document.getElementById('btn-back-home-w').onclick = () => { renderHome(); showPage('home'); };
   document.getElementById('btn-back-home-s').onclick = () => { renderHome(); showPage('home'); };
   document.getElementById('btn-back-home-st').onclick = () => { renderHome(); showPage('home'); };
   document.getElementById('btn-back-home-set').onclick = () => { renderHome(); showPage('home'); };
 
+  document.getElementById('btn-start-learn-detail').onclick = startLearningDetail;
+
   document.getElementById('btn-play-word').onclick = () => {
     const w = sessionWords[currentWordIdx];
     const wd = getWordData(w);
     if (wd) speak(wd.w, 1);
-  };
-  document.getElementById('btn-play-slow').onclick = () => {
-    const w = sessionWords[currentWordIdx];
-    const wd = getWordData(w);
-    if (wd) speak(wd.w, 0.6);
   };
 
   document.getElementById('btn-know').onclick = () => {
@@ -935,6 +1023,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (wd) {
       if (!data.wordStats) data.wordStats = {};
       if (!data.wordStats[w]) data.wordStats[w] = { reviewCount: 0, wrongCount: 0, mastered: false, lastReview: null };
+      const isNew = data.wordStats[w].reviewCount === 0;
       data.wordStats[w].reviewCount = (data.wordStats[w].reviewCount || 0) + 1;
       data.wordStats[w].lastReview = Date.now();
       if (data.wordStats[w].reviewCount >= 3) data.wordStats[w].mastered = true;
@@ -944,24 +1033,19 @@ document.addEventListener('DOMContentLoaded', () => {
       data.session.correct = (data.session.correct || 0) + 1;
       if (!data.todayDone) data.todayDone = {};
       data.todayDone[w] = true;
+      
+      const t = today();
+      if (!data.dailyRecords) data.dailyRecords = {};
+      if (!data.dailyRecords[t]) {
+        data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
+      }
+      if (isNew) data.dailyRecords[t].wordsLearned++;
+      else data.dailyRecords[t].wordsReviewed++;
+      data.dailyRecords[t].correct++;
+      data.dailyRecords[t].total++;
+      
       saveData();
     }
-    currentWordIdx++;
-    renderLearnWord();
-  };
-
-  document.getElementById('btn-still-learning').onclick = () => {
-    const w = sessionWords[currentWordIdx];
-    if (!data.wrong) data.wrong = {};
-    data.wrong[w] = (data.wrong[w] || 0) + 1;
-    const stats = data.wordStats || {};
-    if (!stats[w]) stats[w] = { reviewCount: 0, wrongCount: 0, mastered: false, lastReview: null };
-    stats[w].wrongCount = (stats[w].wrongCount || 0) + 1;
-    if (!data.todayDone) data.todayDone = {};
-    data.todayDone[w] = true;
-    if (!data.dailyLog) data.dailyLog = [];
-    if (!data.dailyLog.includes(today())) data.dailyLog.push(today());
-    saveData();
     currentWordIdx++;
     renderLearnWord();
   };
@@ -1019,6 +1103,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!data.dailyLog.includes(today())) data.dailyLog.push(today());
       if (!data.todayDone) data.todayDone = {};
       data.todayDone[w] = true;
+      
+      const t = today();
+      if (!data.dailyRecords) data.dailyRecords = {};
+      if (!data.dailyRecords[t]) {
+        data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
+      }
+      const isNew = (data.wordStats[w].reviewCount || 0) === 1;
+      if (isNew) data.dailyRecords[t].wordsLearned++;
+      else data.dailyRecords[t].wordsReviewed++;
+      data.dailyRecords[t].correct++;
+      data.dailyRecords[t].total++;
+      
       saveData();
 
       setTimeout(() => {
@@ -1040,6 +1136,14 @@ document.addEventListener('DOMContentLoaded', () => {
       data.wordStats[w].wrongCount = (data.wordStats[w].wrongCount || 0) + 1;
       if (!data.wrong) data.wrong = {};
       data.wrong[w] = (data.wrong[w] || 0) + 1;
+      
+      const t = today();
+      if (!data.dailyRecords) data.dailyRecords = {};
+      if (!data.dailyRecords[t]) {
+        data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
+      }
+      data.dailyRecords[t].total++;
+      
       saveData();
 
       const inputEl = document.getElementById('quiz-input');
@@ -1071,6 +1175,14 @@ document.addEventListener('DOMContentLoaded', () => {
     data.session.count = (data.session.count || 0) + 1;
     if (!data.todayDone) data.todayDone = {};
     data.todayDone[w] = true;
+    
+    const t = today();
+    if (!data.dailyRecords) data.dailyRecords = {};
+    if (!data.dailyRecords[t]) {
+      data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
+    }
+    data.dailyRecords[t].total++;
+    
     saveData();
     document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
     document.getElementById('btn-quiz-next').onclick = () => {
