@@ -620,11 +620,30 @@ function renderQuiz() {
   document.getElementById('quiz-input').focus();
 }
 
-function getHint(wd) {
+function getHint(wd, level) {
   const hints = [];
-  hints.push(`💡 音节拆分：${wd.sy || wd.w}`);
-  hints.push(`💡 首字母：${wd.w[0]}，尾字母：${wd.w[wd.w.length - 1]}`);
-  hints.push(`💡 字母数量：${wd.w.length} 个字母`);
+  const word = wd.w;
+  const len = word.length;
+  
+  hints.push(`💡 音节拆分：${wd.sy || word}`);
+  hints.push(`💡 首字母：${word[0]}，尾字母：${word[len - 1]}`);
+  hints.push(`💡 字母数量：${len} 个字母`);
+  
+  if (len > 3) {
+    const partial1 = word[0] + '_'.repeat(len - 2) + word[len - 1];
+    hints.push(`💡 部分拼写：${partial1}`);
+  }
+  
+  if (len > 4) {
+    const middleIndex = Math.floor(len / 2);
+    let partial2 = word[0];
+    for (let i = 1; i < len - 1; i++) {
+      partial2 += i === middleIndex ? word[i] : '_';
+    }
+    partial2 += word[len - 1];
+    hints.push(`💡 更多字母：${partial2}`);
+  }
+  
   return hints;
 }
 
@@ -957,7 +976,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const w = sessionWords[currentWordIdx];
     const wd = getWordData(w);
     if (!wd) return;
-    const hints = getHint(wd);
+    const hints = getHint(wd, quizHintLevel);
     const hintArea = document.getElementById('quiz-hint-area');
     const hintText = document.getElementById('quiz-hint-text');
     if (quizHintLevel < hints.length) {
