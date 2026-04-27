@@ -56,6 +56,13 @@ body{font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;background
 .simple-mode .input-big{font-size:1.8rem;padding:20px 24px}
 .simple-mode .kid-btn{padding:18px 40px;font-size:1.4rem}
 .simple-mode .phonetic-display,.simple-mode .hint-bar{display:none}
+.letter-tile{display:inline-flex;align-items:center;justify-content:center;width:40px;height:44px;border-radius:10px;background:#fff;border:2px solid #3b82f6;color:#1e3a5f;font-size:1.3rem;font-weight:700;cursor:pointer;transition:all .15s;user-select:none;font-family:monospace}
+.letter-tile:hover{background:#dbeafe;transform:translateY(-2px)}
+.letter-tile.used{opacity:.3;pointer-events:none;border-color:#d1d5db;background:#f3f4f6}
+.letter-tile.answer-tile{background:#3b82f6;color:#fff;border-color:#3b82f6;cursor:pointer}
+.letter-tile.answer-tile:hover{background:#ef4444;border-color:#ef4444;transform:translateY(-2px)}
+.letter-tile.correct-tile{background:#10b981;border-color:#10b981;color:#fff}
+.letter-tile.wrong-tile{background:#ef4444;border-color:#ef4444;color:#fff}
 .tab-bar{display:flex;gap:4px;background:#f1f5f9;border-radius:14px;padding:4px;margin-bottom:16px}
 .tab-item{flex:1;padding:10px;text-align:center;border-radius:12px;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .15s;color:#64748b}
 .tab-item.active{background:#fff;color:#1e3a5f;box-shadow:0 2px 8px rgba(0,0,0,.08)}
@@ -136,9 +143,9 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       <h2 class="font-bold text-xl text-gray-700 flex-1">今日单词概览</h2>
     </div>
     <div class="card mb-4">
+        <button class="kid-btn w-full justify-center mb-3" id="btn-start-learn-detail" style="padding:12px 24px;font-size:1rem"><span>📖</span> 开始学习</button>
         <div id="today-word-grid" class="space-y-1"></div>
       </div>
-      <button class="kid-btn w-full justify-center" id="btn-start-learn-detail" style="padding:12px 24px;font-size:1rem"><span>📖</span> 开始学习</button>
   </div>
   
   <div class="page" id="page-learn">
@@ -187,6 +194,14 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       </div>
       <div class="flex justify-center mb-4">
         <input type="text" class="input-big" id="quiz-input" placeholder="输入英文..." autocomplete="off" autocapitalize="off" spellcheck="false" style="font-size:1.3rem;padding:12px 16px;max-width:320px">
+      </div>
+      <div id="letter-tile-area" class="hidden mb-4">
+        <div class="flex justify-center flex-wrap gap-2 mb-3" id="letter-tile-options"></div>
+        <div class="flex justify-center flex-wrap gap-1 min-h-[44px] px-3 py-2 bg-blue-50 rounded-xl mb-2" id="letter-tile-answer"></div>
+        <div class="flex gap-2 justify-center">
+          <button class="kid-btn small orange" id="btn-letter-clear" style="padding:4px 12px;font-size:.8rem">🗑️ 清除</button>
+          <button class="kid-btn small green" id="btn-letter-submit" style="padding:4px 18px;font-size:.9rem">✅ 确认</button>
+        </div>
       </div>
       <div id="quiz-hint-area" class="hint-bar text-left max-w-sm mx-auto mb-3 hidden" style="font-size:.85rem">
         <span id="quiz-hint-text"></span>
@@ -322,6 +337,13 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         </select>
       </div>
       <div>
+        <label class="block font-bold text-gray-700 mb-2">✍️ 拼写模式</label>
+        <select class="kid-select" id="setting-spell-mode">
+          <option value="typing">打字拼写</option>
+          <option value="click">点选字母</option>
+        </select>
+      </div>
+      <div>
         <label class="block font-bold text-gray-700 mb-2">🧠 复习强度</label>
         <select class="kid-select" id="setting-intensity">
           <option value="easy">宽松</option>
@@ -359,7 +381,7 @@ const SETTINGS_KEY = 'ket_learner_settings';
 
 const defaultSettings = {
   dailyCount: 10, mode: 'mixed', theme: 'standard',
-  accent: 'en-GB', intensity: 'normal', breakMin: 30, music: false
+  accent: 'en-GB', spellMode: 'typing', intensity: 'normal', breakMin: 30, music: false
 };
 
 function loadSettings() {
@@ -843,10 +865,76 @@ function renderQuiz() {
   document.getElementById('btn-quiz-skip').style.display = '';
   quizHintLevel = 0;
 
+  const isClickMode = settings.spellMode === 'click';
+  document.getElementById('quiz-input').style.display = isClickMode ? 'none' : '';
+  document.getElementById('letter-tile-area').classList.toggle('hidden', !isClickMode);
+  if (isClickMode) {
+    initLetterTiles(wd.w);
+  } else {
+    document.getElementById('quiz-input').focus();
+  }
+
   const total = sessionWords.length;
   document.getElementById('quiz-progress-bar').style.width = (currentWordIdx / total * 100) + '%';
   document.getElementById('quiz-progress-text').textContent = `${currentWordIdx + 1} / ${total}`;
-  document.getElementById('quiz-input').focus();
+}
+
+// ---- Letter Tile Spelling ----
+let _tileAnswer = [];
+let _tileLetters = [];
+
+function initLetterTiles(word) {
+  _tileAnswer = [];
+  _tileLetters = word.split('').sort(() => Math.random() - 0.5);
+  renderLetterTiles();
+}
+
+function renderLetterTiles() {
+  const optionsEl = document.getElementById('letter-tile-options');
+  const answerEl = document.getElementById('letter-tile-answer');
+
+  const usedIndices = _tileAnswer.map(t => t.idx);
+  optionsEl.innerHTML = _tileLetters.map((ch, i) =>
+    `<span class="letter-tile ${usedIndices.includes(i) ? 'used' : ''}" data-idx="${i}" onclick="clickLetterTile(${i})">${ch}</span>`
+  ).join('');
+
+  answerEl.innerHTML = _tileAnswer.map(t =>
+    `<span class="letter-tile answer-tile" onclick="removeLetterTile(${t.idx})">${t.ch}</span>`
+  ).join('');
+  
+  if (_tileAnswer.length === 0) {
+    answerEl.innerHTML = '<span class="text-sm text-gray-400">点击上方字母拼写单词...</span>';
+  }
+}
+
+function clickLetterTile(idx) {
+  const ch = _tileLetters[idx];
+  _tileAnswer.push({ idx, ch });
+  renderLetterTiles();
+  const word = sessionWords[currentWordIdx];
+  const wd = getWordData(word);
+  if (wd && _tileAnswer.length === wd.w.length) {
+    setTimeout(() => submitLetterAnswer(), 300);
+  }
+}
+
+function removeLetterTile(idx) {
+  _tileAnswer = _tileAnswer.filter(t => t.idx !== idx);
+  renderLetterTiles();
+}
+
+function submitLetterAnswer() {
+  const word = sessionWords[currentWordIdx];
+  const wd = getWordData(word);
+  if (!wd) return;
+  const answer = _tileAnswer.map(t => t.ch).join('');
+  const isCorrect = answer.toLowerCase() === wd.w.toLowerCase();
+  
+  document.querySelectorAll('#letter-tile-answer .letter-tile').forEach(el => {
+    el.classList.add(isCorrect ? 'correct-tile' : 'wrong-tile');
+  });
+  
+  doQuizResult(wd, isCorrect);
 }
 
 function getHint(wd, level) {
@@ -1117,6 +1205,7 @@ function applySettings() {
   document.getElementById('setting-mode').value = settings.mode;
   document.getElementById('setting-theme').value = settings.theme;
   document.getElementById('setting-accent').value = settings.accent;
+  document.getElementById('setting-spell-mode').value = settings.spellMode;
   document.getElementById('setting-intensity').value = settings.intensity;
   document.getElementById('setting-break').value = settings.breakMin;
   document.getElementById('setting-music').checked = settings.music;
@@ -1271,18 +1360,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const w = sessionWords[currentWordIdx];
     const wd = getWordData(w);
     if (!wd) return;
+    if (settings.spellMode === 'click') {
+      submitLetterAnswer();
+      return;
+    }
     const input = document.getElementById('quiz-input').value.trim().toLowerCase().replace(/\s+/g, '');
     const answer = wd.w.toLowerCase().replace(/\s+/g, '');
     const isCorrect = input === answer;
+    doQuizResult(wd, isCorrect);
+  };
 
+  function doQuizResult(wd, isCorrect) {
+    const w = wd.w;
     if (!data.wordStats) data.wordStats = {};
     if (!data.wordStats[w]) data.wordStats[w] = { reviewCount: 0, wrongCount: 0, mastered: false, lastReview: null };
     if (!data.history) data.history = {};
     if (!data.history[w]) data.history[w] = { attempts: 0, correct: 0 };
     data.history[w].attempts = (data.history[w].attempts || 0) + 1;
 
+    const t = today();
+    if (!data.dailyRecords) data.dailyRecords = {};
+    if (!data.dailyRecords[t]) {
+      data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
+    }
+
     if (isCorrect) {
-      document.getElementById('quiz-input').className = 'input-big correct';
       data.wordStats[w].reviewCount = (data.wordStats[w].reviewCount || 0) + 1;
       data.wordStats[w].lastReview = Date.now();
       if (data.wordStats[w].reviewCount >= 3) data.wordStats[w].mastered = true;
@@ -1293,20 +1395,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!data.dailyLog.includes(today())) data.dailyLog.push(today());
       if (!data.todayDone) data.todayDone = {};
       data.todayDone[w] = true;
-      
-      const t = today();
-      if (!data.dailyRecords) data.dailyRecords = {};
-      if (!data.dailyRecords[t]) {
-        data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
-      }
       const isNew = (data.wordStats[w].reviewCount || 0) === 1;
       if (isNew) data.dailyRecords[t].wordsLearned++;
       else data.dailyRecords[t].wordsReviewed++;
       data.dailyRecords[t].correct++;
       data.dailyRecords[t].total++;
-      
       saveData();
-
       setTimeout(() => {
         document.getElementById('quiz-card').classList.add('hidden');
         document.getElementById('quiz-result-card').classList.remove('hidden');
@@ -1316,38 +1410,38 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('quiz-result-meaning').textContent = wd.m || '';
         document.getElementById('quiz-result-example').textContent = wd.ex || '';
         document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
-        document.getElementById('btn-quiz-next').onclick = () => {
-          currentWordIdx++;
-          renderQuiz();
-        };
+        document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
       }, 300);
     } else {
-      document.getElementById('quiz-input').className = 'input-big wrong';
       data.wordStats[w].wrongCount = (data.wordStats[w].wrongCount || 0) + 1;
       if (!data.wrong) data.wrong = {};
       data.wrong[w] = (data.wrong[w] || 0) + 1;
-      
-      const t = today();
-      if (!data.dailyRecords) data.dailyRecords = {};
-      if (!data.dailyRecords[t]) {
-        data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
-      }
       data.dailyRecords[t].total++;
-      
       saveData();
-
       const inputEl = document.getElementById('quiz-input');
-      inputEl.value = '';
-      inputEl.disabled = true;
-      const hintArea = document.getElementById('quiz-hint-area');
-      hintArea.classList.remove('hidden');
-      document.getElementById('quiz-hint-text').textContent = `再试一次！提示：${wd.sy || wd.w}，首字母 ${wd.w[0]}`;
-      setTimeout(() => {
-        inputEl.disabled = false;
-        inputEl.focus();
-      }, 1500);
+      if (inputEl.style.display !== 'none') {
+        inputEl.className = 'input-big wrong';
+        inputEl.value = '';
+        inputEl.disabled = true;
+        const hintArea = document.getElementById('quiz-hint-area');
+        hintArea.classList.remove('hidden');
+        document.getElementById('quiz-hint-text').textContent = `再试一次！提示：${wd.sy || wd.w}，首字母 ${wd.w[0]}`;
+        setTimeout(() => { inputEl.disabled = false; inputEl.focus(); }, 1500);
+      } else {
+        setTimeout(() => {
+          document.getElementById('quiz-card').classList.add('hidden');
+          document.getElementById('quiz-result-card').classList.remove('hidden');
+          document.getElementById('quiz-result-icon').textContent = '🤔';
+          document.getElementById('quiz-result-title').textContent = '再试一次！';
+          document.getElementById('quiz-result-word').textContent = wd.w;
+          document.getElementById('quiz-result-meaning').textContent = wd.m || '';
+          document.getElementById('quiz-result-example').textContent = wd.ex || '';
+          document.getElementById('btn-quiz-next').innerHTML = '<span>🔄</span> 重试';
+          document.getElementById('btn-quiz-next').onclick = () => { renderQuiz(); };
+        }, 500);
+      }
     }
-  };
+  }
 
   document.getElementById('btn-quiz-skip').onclick = () => {
     const w = sessionWords[currentWordIdx];
@@ -1385,6 +1479,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('setting-mode').onchange = (e) => { settings.mode = e.target.value; saveSettings(settings); };
   document.getElementById('setting-theme').onchange = (e) => { settings.theme = e.target.value; saveSettings(settings); applySettings(); };
   document.getElementById('setting-accent').onchange = (e) => { settings.accent = e.target.value; saveSettings(settings); };
+  document.getElementById('setting-spell-mode').onchange = (e) => { settings.spellMode = e.target.value; saveSettings(settings); };
   document.getElementById('setting-intensity').onchange = (e) => { settings.intensity = e.target.value; saveSettings(settings); };
   document.getElementById('setting-break').onchange = (e) => { settings.breakMin = parseInt(e.target.value); saveSettings(settings); };
   document.getElementById('setting-music').onchange = (e) => { settings.music = e.target.checked; saveSettings(settings); };
@@ -1410,6 +1505,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
   document.getElementById('btn-quiz-next').onclick = null;
+
+  document.getElementById('btn-letter-clear').onclick = () => {
+    _tileAnswer = [];
+    renderLetterTiles();
+  };
+  document.getElementById('btn-letter-submit').onclick = () => {
+    if (_tileAnswer.length > 0) submitLetterAnswer();
+  };
 });
 </script>
 </body>
