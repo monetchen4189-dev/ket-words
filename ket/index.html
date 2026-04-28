@@ -195,18 +195,20 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       <div class="flex justify-center mb-4">
         <input type="text" class="input-big" id="quiz-input" placeholder="输入英文..." autocomplete="off" autocapitalize="off" spellcheck="false" style="font-size:1.3rem;padding:12px 16px;max-width:320px">
       </div>
-      <div id="letter-tile-area" class="hidden mb-4">
-        <div class="flex justify-center flex-wrap gap-2 mb-3" id="letter-tile-options"></div>
-        <div class="flex justify-center flex-wrap gap-1 min-h-[44px] px-3 py-2 bg-blue-50 rounded-xl mb-2" id="letter-tile-answer"></div>
-        <div class="flex gap-2 justify-center">
-          <button class="kid-btn small orange" id="btn-letter-clear" style="padding:4px 12px;font-size:.8rem">🗑️ 清除</button>
-          <button class="kid-btn small green" id="btn-letter-submit" style="padding:4px 18px;font-size:.9rem">✅ 确认</button>
-        </div>
-      </div>
       <div id="quiz-hint-area" class="hint-bar text-left max-w-sm mx-auto mb-3 hidden" style="font-size:.85rem">
         <span id="quiz-hint-text"></span>
       </div>
-      <div class="flex gap-2 justify-center">
+      <div id="letter-tile-area" class="hidden mb-3">
+        <div class="flex justify-center flex-wrap gap-1 min-h-[44px] px-3 py-2 bg-blue-50 rounded-xl mb-2" id="letter-tile-answer"></div>
+        <div class="flex justify-center flex-wrap gap-2 mb-3" id="letter-tile-options"></div>
+        <div class="flex gap-2 justify-center">
+          <button class="kid-btn small orange" id="btn-letter-hint" onclick="clickModeHint()" style="padding:4px 12px;font-size:.8rem">💡 提示</button>
+          <button class="kid-btn small orange" id="btn-letter-clear" onclick="clearLetterTiles()" style="padding:4px 12px;font-size:.8rem">🗑️ 清除</button>
+          <button class="kid-btn small green" id="btn-letter-submit" onclick="submitLetterAnswer()" style="padding:4px 18px;font-size:.9rem">✅ 确认</button>
+          <button class="kid-btn small pink" id="btn-letter-skip" onclick="skipWord()" style="padding:4px 12px;font-size:.8rem">⏭️ 跳过</button>
+        </div>
+      </div>
+      <div class="flex gap-2 justify-center" id="quiz-action-bar">
         <button class="kid-btn small orange" id="btn-quiz-hint2" style="padding:6px 12px;font-size:.8rem"><span>💡</span> 提示</button>
         <button class="kid-btn green small" id="btn-quiz-submit" style="padding:6px 18px;font-size:.9rem"><span>✅</span> 确认</button>
         <button class="kid-btn pink small" id="btn-quiz-skip" style="padding:6px 18px;font-size:.9rem"><span>⏭️</span> 跳过</button>
@@ -868,9 +870,19 @@ function renderQuiz() {
   const isClickMode = settings.spellMode === 'click';
   document.getElementById('quiz-input').style.display = isClickMode ? 'none' : '';
   document.getElementById('letter-tile-area').classList.toggle('hidden', !isClickMode);
+  const typingActionBar = document.getElementById('quiz-input').parentElement.nextElementSibling;
+  const hintArea = document.getElementById('quiz-hint-area');
   if (isClickMode) {
+    document.getElementById('btn-quiz-hint2').style.display = 'none';
+    document.getElementById('btn-quiz-submit').style.display = 'none';
+    document.getElementById('btn-quiz-skip').style.display = 'none';
+    document.getElementById('quiz-hint-area').classList.add('hidden');
+    quizHintLevel = 0;
     initLetterTiles(wd.w);
   } else {
+    document.getElementById('btn-quiz-hint2').style.display = '';
+    document.getElementById('btn-quiz-submit').style.display = '';
+    document.getElementById('btn-quiz-skip').style.display = '';
     document.getElementById('quiz-input').focus();
   }
 
@@ -923,18 +935,90 @@ function removeLetterTile(idx) {
   renderLetterTiles();
 }
 
+function clearLetterTiles() {
+  _tileAnswer = [];
+  renderLetterTiles();
+  document.getElementById('quiz-hint-area').classList.add('hidden');
+}
+
 function submitLetterAnswer() {
   const word = sessionWords[currentWordIdx];
   const wd = getWordData(word);
-  if (!wd) return;
+  if (!wd || _tileAnswer.length === 0) return;
   const answer = _tileAnswer.map(t => t.ch).join('');
   const isCorrect = answer.toLowerCase() === wd.w.toLowerCase();
   
-  document.querySelectorAll('#letter-tile-answer .letter-tile').forEach(el => {
-    el.classList.add(isCorrect ? 'correct-tile' : 'wrong-tile');
-  });
-  
-  doQuizResult(wd, isCorrect);
+  if (isCorrect) {
+    doQuizResult(wd, true);
+  } else {
+    document.querySelectorAll('#letter-tile-answer .letter-tile').forEach(el => {
+      el.classList.add('wrong-tile');
+    });
+    const hintArea = document.getElementById('quiz-hint-area');
+    hintArea.classList.remove('hidden');
+    document.getElementById('quiz-hint-text').textContent = `❌ 拼写错误，再试一次！提示：首字母 ${wd.w[0]}，共 ${wd.w.length} 个字母`;
+    setTimeout(() => {
+      clearLetterTiles();
+      initLetterTiles(wd.w);
+    }, 800);
+  }
+}
+
+function clickModeHint() {
+  const word = sessionWords[currentWordIdx];
+  const wd = getWordData(word);
+  if (!wd) return;
+  const nextIdx = _tileAnswer.length;
+  if (nextIdx >= wd.w.length) return;
+  const targetCh = wd.w[nextIdx];
+  for (let i = 0; i < _tileLetters.length; i++) {
+    const used = _tileAnswer.map(t => t.idx);
+    if (!used.includes(i) && _tileLetters[i] === targetCh) {
+      clickLetterTile(i);
+      return;
+    }
+  }
+}
+
+function skipWord() {
+  const w = sessionWords[currentWordIdx];
+  const wd = getWordData(w);
+  if (wd) showWordResult(wd, false);
+}
+
+function showWordResult(wd, isCorrect) {
+  if (!data.wrong) data.wrong = {};
+  if (!isCorrect && wd) data.wrong[wd.w] = (data.wrong[wd.w] || 0) + 1;
+  data.session.count = (data.session.count || 0) + 1;
+  if (!data.todayDone) data.todayDone = {};
+  if (wd) data.todayDone[wd.w] = true;
+  const t = today();
+  if (!data.dailyRecords) data.dailyRecords = {};
+  if (!data.dailyRecords[t]) {
+    data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
+  }
+  data.dailyRecords[t].total++;
+  saveData();
+
+  document.getElementById('quiz-card').classList.add('hidden');
+  document.getElementById('quiz-result-card').classList.remove('hidden');
+  document.getElementById('quiz-result-icon').textContent = isCorrect ? '🎉' : '🤔';
+  document.getElementById('quiz-result-title').textContent = isCorrect ? '✅ 正确！' : '下次加油！';
+  document.getElementById('quiz-result-word').textContent = wd.w;
+  document.getElementById('quiz-result-meaning').textContent = wd.m || '';
+  document.getElementById('quiz-result-example').textContent = wd.ex || '';
+
+  if (wd.col || wd.tip) {
+    let extra = '';
+    if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
+    if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
+    document.getElementById('quiz-result-example').innerHTML = (wd.ex || '') + extra;
+  } else {
+    document.getElementById('quiz-result-example').textContent = wd.ex || '';
+  }
+
+  document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
+  document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
 }
 
 function getHint(wd, level) {
@@ -1401,17 +1485,18 @@ document.addEventListener('DOMContentLoaded', () => {
       data.dailyRecords[t].correct++;
       data.dailyRecords[t].total++;
       saveData();
-      setTimeout(() => {
-        document.getElementById('quiz-card').classList.add('hidden');
-        document.getElementById('quiz-result-card').classList.remove('hidden');
-        document.getElementById('quiz-result-icon').textContent = '🎉';
-        document.getElementById('quiz-result-title').textContent = '✅ 正确！';
-        document.getElementById('quiz-result-word').textContent = wd.w;
-        document.getElementById('quiz-result-meaning').textContent = wd.m || '';
-        document.getElementById('quiz-result-example').textContent = wd.ex || '';
-        document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
-        document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
-      }, 300);
+      document.getElementById('quiz-card').classList.add('hidden');
+      document.getElementById('quiz-result-card').classList.remove('hidden');
+      document.getElementById('quiz-result-icon').textContent = '🎉';
+      document.getElementById('quiz-result-title').textContent = '✅ 正确！';
+      document.getElementById('quiz-result-word').textContent = wd.w;
+      document.getElementById('quiz-result-meaning').textContent = wd.m || '';
+      let extra = '';
+      if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
+      if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
+      document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
+      document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
+      document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
     } else {
       data.wordStats[w].wrongCount = (data.wordStats[w].wrongCount || 0) + 1;
       if (!data.wrong) data.wrong = {};
@@ -1505,14 +1590,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
   document.getElementById('btn-quiz-next').onclick = null;
-
-  document.getElementById('btn-letter-clear').onclick = () => {
-    _tileAnswer = [];
-    renderLetterTiles();
-  };
-  document.getElementById('btn-letter-submit').onclick = () => {
-    if (_tileAnswer.length > 0) submitLetterAnswer();
-  };
 });
 </script>
 </body>
