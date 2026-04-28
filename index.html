@@ -881,6 +881,7 @@ function renderQuiz() {
     letterTileArea.classList.remove('hidden');
     typingButtons.classList.add('hidden');
     btnLetterNext.classList.add('hidden');
+    btnLetterNext.onclick = () => { currentWordIdx++; renderQuiz(); };
     document.getElementById('letter-tile-options').classList.remove('hidden');
     document.getElementById('btn-letter-clear').classList.remove('hidden');
     document.getElementById('btn-letter-hint').classList.remove('hidden');
@@ -1069,11 +1070,9 @@ function handleQuizResult(wd, isCorrect) {
     feedbackEl.classList.remove('hidden');
 
     const starBtn = document.getElementById('quiz-feedback-star');
-    const starId = 'star-btn-' + w.replace(/[^a-zA-Z0-9]/g, '');
-    starBtn.id = starId;
     starBtn.textContent = data.starred && data.starred[w] ? '⭐' : '☆';
     starBtn.style.display = '';
-    starBtn.onclick = () => toggleStar(w);
+    starBtn.onclick = () => { toggleStar(w); starBtn.textContent = data.starred && data.starred[w] ? '⭐' : '☆'; };
 
     if (isClickMode) {
       document.getElementById('letter-tile-options').classList.add('hidden');
