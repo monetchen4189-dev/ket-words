@@ -923,11 +923,6 @@ function clickLetterTile(idx) {
   const ch = _tileLetters[idx];
   _tileAnswer.push({ idx, ch });
   renderLetterTiles();
-  const word = sessionWords[currentWordIdx];
-  const wd = getWordData(word);
-  if (wd && _tileAnswer.length === wd.w.length) {
-    setTimeout(() => submitLetterAnswer(), 300);
-  }
 }
 
 function removeLetterTile(idx) {
@@ -937,6 +932,9 @@ function removeLetterTile(idx) {
 
 function clearLetterTiles() {
   _tileAnswer = [];
+  const word = sessionWords[currentWordIdx];
+  const wd = getWordData(word);
+  if (wd) _tileLetters = wd.w.split('').sort(() => Math.random() - 0.5);
   renderLetterTiles();
   document.getElementById('quiz-hint-area').classList.add('hidden');
 }
@@ -949,18 +947,14 @@ function submitLetterAnswer() {
   const isCorrect = answer.toLowerCase() === wd.w.toLowerCase();
   
   if (isCorrect) {
-    doQuizResult(wd, true);
+    if (window.doQuizResult) window.doQuizResult(wd, true);
   } else {
     document.querySelectorAll('#letter-tile-answer .letter-tile').forEach(el => {
       el.classList.add('wrong-tile');
     });
     const hintArea = document.getElementById('quiz-hint-area');
     hintArea.classList.remove('hidden');
-    document.getElementById('quiz-hint-text').textContent = `❌ 拼写错误，再试一次！提示：首字母 ${wd.w[0]}，共 ${wd.w.length} 个字母`;
-    setTimeout(() => {
-      clearLetterTiles();
-      initLetterTiles(wd.w);
-    }, 800);
+    document.getElementById('quiz-hint-text').textContent = `❌ 拼写错误，点击「清除」重新拼写！提示：首字母 ${wd.w[0]}，共 ${wd.w.length} 个字母`;
   }
 }
 
@@ -983,7 +977,31 @@ function clickModeHint() {
 function skipWord() {
   const w = sessionWords[currentWordIdx];
   const wd = getWordData(w);
-  if (wd) showWordResult(wd, false);
+  if (!wd) return;
+  if (!data.wrong) data.wrong = {};
+  data.wrong[wd.w] = (data.wrong[wd.w] || 0) + 1;
+  data.session.count = (data.session.count || 0) + 1;
+  if (!data.todayDone) data.todayDone = {};
+  data.todayDone[wd.w] = true;
+  const t = today();
+  if (!data.dailyRecords) data.dailyRecords = {};
+  if (!data.dailyRecords[t]) {
+    data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
+  }
+  data.dailyRecords[t].total++;
+  saveData();
+  document.getElementById('quiz-card').classList.add('hidden');
+  document.getElementById('quiz-result-card').classList.remove('hidden');
+  document.getElementById('quiz-result-icon').textContent = '🤔';
+  document.getElementById('quiz-result-title').textContent = '下次加油！';
+  document.getElementById('quiz-result-word').textContent = wd.w;
+  document.getElementById('quiz-result-meaning').textContent = wd.m || '';
+  let extra = '';
+  if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
+  if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
+  document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
+  document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
+  document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
 }
 
 function showWordResult(wd, isCorrect) {
@@ -1527,6 +1545,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+  window.doQuizResult = doQuizResult;
 
   document.getElementById('btn-quiz-skip').onclick = () => {
     const w = sessionWords[currentWordIdx];

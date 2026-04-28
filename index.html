@@ -134,9 +134,6 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
           <div class="text-xs text-gray-500">总打卡</div>
         </div>
       </div>
-      <div class="mt-3 text-center">
-        <a href="toefl-junior/" class="text-sm text-purple-500 hover:text-purple-700 font-medium">📚 小托福单词打卡 →</a>
-      </div>
     </div>
   </div>
 
@@ -161,7 +158,7 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <div class="text-xs text-gray-400 mt-1 text-center" id="learn-progress-text">0 / 0</div>
       </div>
     </div>
-    <div class="card word-card" id="learn-card" style="padding:20px">
+    <div class="card word-card relative" id="learn-card" style="padding:20px">
         <div class="flex items-center justify-center gap-3 mb-1">
           <div class="word-display" id="learn-word" style="font-size:2.8rem">hello</div>
           <button id="btn-play-word" style="background:none;border:none;font-size:1.8rem;cursor:pointer;padding:4px;line-height:1;color:#3b82f6" title="点击发音">🔊</button>
@@ -176,6 +173,7 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
           <button class="kid-btn small outline" id="btn-prev" style="padding:6px 14px;font-size:.85rem">← 上一个</button>
           <button class="kid-btn small green" id="btn-know" style="padding:6px 14px;font-size:.85rem">下一个 →</button>
         </div>
+        <div class="absolute top-2 right-2 text-2xl cursor-pointer select-none hover:scale-110 transition-transform" id="learn-star-icon2" onclick="toggleLearnStar()" title="收藏">⭐</div>
       </div>
   </div>
 
@@ -217,11 +215,12 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <button class="kid-btn pink small" id="btn-quiz-skip" style="padding:6px 18px;font-size:.9rem"><span>⏭️</span> 跳过</button>
       </div>
     </div>
-    <div class="card word-card hidden" id="quiz-result-card">
+    <div class="card word-card hidden relative" id="quiz-result-card">
       <div class="text-5xl mb-3" id="quiz-result-icon">🎉</div>
       <div class="big-text text-2xl mb-2" id="quiz-result-title">正确！</div>
       <div class="word-display text-3xl mb-1" id="quiz-result-word">hello</div>
       <div class="text-gray-500 mb-4" id="quiz-result-meaning">你好</div>
+      <div class="absolute top-2 right-2 text-2xl cursor-pointer select-none hover:scale-110 transition-transform" id="star-btn-icon2" onclick="toggleStar()" title="收藏">⭐</div>
       <div class="bg-blue-50 rounded-xl p-3 mb-4 text-left max-w-sm mx-auto">
         <div class="text-xs text-gray-400 mb-1">📝 例句</div>
         <div class="font-medium text-sm" id="quiz-result-example">Hello, my name is Tom.</div>
@@ -820,6 +819,10 @@ function renderLearnWord() {
     document.getElementById('learn-example').textContent = wd.ex || '';
     speak(wd.w, 1);
 
+    const isStarred = data.starred && data.starred[wd.w];
+    const starIcon = document.getElementById('learn-star-icon2');
+    if (starIcon) starIcon.textContent = isStarred ? '🌟' : '⭐';
+
     document.getElementById('btn-prev').style.display = currentWordIdx > 0 ? '' : 'none';
 
     const total = sessionWords.length;
@@ -926,11 +929,6 @@ function clickLetterTile(idx) {
   const ch = _tileLetters[idx];
   _tileAnswer.push({ idx, ch });
   renderLetterTiles();
-  const word = sessionWords[currentWordIdx];
-  const wd = getWordData(word);
-  if (wd && _tileAnswer.length === wd.w.length) {
-    setTimeout(() => submitLetterAnswer(), 300);
-  }
 }
 
 function removeLetterTile(idx) {
@@ -940,6 +938,9 @@ function removeLetterTile(idx) {
 
 function clearLetterTiles() {
   _tileAnswer = [];
+  const word = sessionWords[currentWordIdx];
+  const wd = getWordData(word);
+  if (wd) _tileLetters = wd.w.split('').sort(() => Math.random() - 0.5);
   renderLetterTiles();
   document.getElementById('quiz-hint-area').classList.add('hidden');
 }
@@ -952,18 +953,14 @@ function submitLetterAnswer() {
   const isCorrect = answer.toLowerCase() === wd.w.toLowerCase();
   
   if (isCorrect) {
-    doQuizResult(wd, true);
+    if (window.doQuizResult) window.doQuizResult(wd, true);
   } else {
     document.querySelectorAll('#letter-tile-answer .letter-tile').forEach(el => {
       el.classList.add('wrong-tile');
     });
     const hintArea = document.getElementById('quiz-hint-area');
     hintArea.classList.remove('hidden');
-    document.getElementById('quiz-hint-text').textContent = `❌ 拼写错误，再试一次！提示：首字母 ${wd.w[0]}，共 ${wd.w.length} 个字母`;
-    setTimeout(() => {
-      clearLetterTiles();
-      initLetterTiles(wd.w);
-    }, 800);
+    document.getElementById('quiz-hint-text').textContent = `❌ 拼写错误，点击「清除」重新拼写！提示：首字母 ${wd.w[0]}，共 ${wd.w.length} 个字母`;
   }
 }
 
@@ -986,7 +983,70 @@ function clickModeHint() {
 function skipWord() {
   const w = sessionWords[currentWordIdx];
   const wd = getWordData(w);
-  if (wd) showWordResult(wd, false);
+  if (!wd) return;
+  if (!data.wrong) data.wrong = {};
+  data.wrong[wd.w] = (data.wrong[wd.w] || 0) + 1;
+  data.session.count = (data.session.count || 0) + 1;
+  if (!data.todayDone) data.todayDone = {};
+  data.todayDone[wd.w] = true;
+  const t = today();
+  if (!data.dailyRecords) data.dailyRecords = {};
+  if (!data.dailyRecords[t]) {
+    data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
+  }
+  data.dailyRecords[t].total++;
+  saveData();
+  showResultCard(wd, '🤔', '下次加油！');
+}
+
+function toggleStar() {
+  const w = sessionWords[currentWordIdx];
+  const wd = getWordData(w);
+  if (!wd) return;
+  if (!data.starred) data.starred = {};
+  const icon = document.getElementById('star-btn-icon2');
+  if (data.starred[wd.w]) {
+    delete data.starred[wd.w];
+    if (icon) icon.textContent = '⭐';
+  } else {
+    data.starred[wd.w] = true;
+    if (icon) icon.textContent = '🌟';
+  }
+  saveData();
+}
+
+function toggleLearnStar() {
+  const w = sessionWords[currentWordIdx];
+  const wd = getWordData(w);
+  if (!wd) return;
+  if (!data.starred) data.starred = {};
+  const icon = document.getElementById('learn-star-icon2');
+  if (data.starred[wd.w]) {
+    delete data.starred[wd.w];
+    if (icon) icon.textContent = '⭐';
+  } else {
+    data.starred[wd.w] = true;
+    if (icon) icon.textContent = '🌟';
+  }
+  saveData();
+}
+
+function showResultCard(wd, icon, title) {
+  document.getElementById('quiz-card').classList.add('hidden');
+  document.getElementById('quiz-result-card').classList.remove('hidden');
+  document.getElementById('quiz-result-icon').textContent = icon;
+  document.getElementById('quiz-result-title').textContent = title;
+  document.getElementById('quiz-result-word').textContent = wd.w;
+  document.getElementById('quiz-result-meaning').textContent = wd.m || '';
+  let extra = '';
+  if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
+  if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
+  document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
+  const isStarred = data.starred && data.starred[wd.w];
+  document.getElementById('star-btn-icon').textContent = isStarred ? '🌟' : '⭐';
+  document.getElementById('star-btn-text').textContent = isStarred ? '已收藏' : '收藏';
+  document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
+  document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
 }
 
 function showWordResult(wd, isCorrect) {
@@ -1488,18 +1548,7 @@ document.addEventListener('DOMContentLoaded', () => {
       data.dailyRecords[t].correct++;
       data.dailyRecords[t].total++;
       saveData();
-      document.getElementById('quiz-card').classList.add('hidden');
-      document.getElementById('quiz-result-card').classList.remove('hidden');
-      document.getElementById('quiz-result-icon').textContent = '🎉';
-      document.getElementById('quiz-result-title').textContent = '✅ 正确！';
-      document.getElementById('quiz-result-word').textContent = wd.w;
-      document.getElementById('quiz-result-meaning').textContent = wd.m || '';
-      let extra = '';
-      if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
-      if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
-      document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
-      document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
-      document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
+      showResultCard(wd, '🎉', '✅ 正确！');
     } else {
       data.wordStats[w].wrongCount = (data.wordStats[w].wrongCount || 0) + 1;
       if (!data.wrong) data.wrong = {};
@@ -1530,37 +1579,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+  window.doQuizResult = doQuizResult;
 
   document.getElementById('btn-quiz-skip').onclick = () => {
     const w = sessionWords[currentWordIdx];
     const wd = getWordData(w);
     if (!wd) return;
-    document.getElementById('quiz-card').classList.add('hidden');
-    document.getElementById('quiz-result-card').classList.remove('hidden');
-    document.getElementById('quiz-result-icon').textContent = '🤔';
-    document.getElementById('quiz-result-title').textContent = '下次加油！';
-    document.getElementById('quiz-result-word').textContent = wd.w;
-    document.getElementById('quiz-result-meaning').textContent = wd.m || '';
-    document.getElementById('quiz-result-example').textContent = wd.ex || '';
     if (!data.wrong) data.wrong = {};
     data.wrong[w] = (data.wrong[w] || 0) + 1;
     data.session.count = (data.session.count || 0) + 1;
     if (!data.todayDone) data.todayDone = {};
     data.todayDone[w] = true;
-    
     const t = today();
     if (!data.dailyRecords) data.dailyRecords = {};
     if (!data.dailyRecords[t]) {
       data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
     }
     data.dailyRecords[t].total++;
-    
     saveData();
-    document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
-    document.getElementById('btn-quiz-next').onclick = () => {
-      currentWordIdx++;
-      renderQuiz();
-    };
+    showResultCard(wd, '🤔', '下次加油！');
   };
 
   document.getElementById('setting-daily-count').onchange = (e) => { settings.dailyCount = parseInt(e.target.value); saveSettings(settings); };
