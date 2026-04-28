@@ -161,6 +161,7 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <div class="flex items-center justify-center gap-3 mb-1">
           <div class="word-display" id="learn-word" style="font-size:2.8rem">hello</div>
           <button id="btn-play-word" style="background:none;border:none;font-size:1.8rem;cursor:pointer;padding:4px;line-height:1;color:#3b82f6" title="点击发音">🔊</button>
+          <button id="learn-star-btn" style="background:none;border:none;font-size:1.8rem;cursor:pointer;padding:4px;line-height:1" title="收藏单词"></button>
         </div>
         <div class="phonetic-display" id="learn-phonetic" style="font-size:1rem;margin-bottom:8px">/həˈləʊ/</div>
         <div class="flex justify-center gap-6 text-sm text-gray-600 mb-2">
@@ -216,7 +217,8 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <div id="quiz-feedback-text" class="text-lg font-bold mb-1"></div>
         <div id="quiz-feedback-word" class="text-2xl font-bold text-blue-600 mb-1"></div>
         <div id="quiz-feedback-meaning" class="text-gray-500 text-sm mb-2"></div>
-        <div id="quiz-feedback-example" class="bg-blue-50 rounded-xl p-3 text-left max-w-sm mx-auto mb-3">
+        <button id="quiz-feedback-star" style="background:none;border:none;font-size:2rem;cursor:pointer;padding:4px;line-height:1" title="收藏单词"></button>
+        <div id="quiz-feedback-example" class="bg-blue-50 rounded-xl p-3 text-left max-w-sm mx-auto mb-3 mt-2">
           <div class="text-xs text-gray-400 mb-1">📝 例句</div>
           <div class="font-medium text-sm" id="quiz-feedback-example-text"></div>
         </div>
@@ -814,6 +816,11 @@ function renderLearnWord() {
     document.getElementById('learn-example').textContent = wd.ex || '';
     speak(wd.w, 1);
 
+    const learnStar = document.getElementById('learn-star-btn');
+    learnStar.textContent = data.starred && data.starred[w] ? '⭐' : '☆';
+    learnStar.onclick = () => toggleStar(w);
+    learnStar.style.display = '';
+
     document.getElementById('btn-prev').style.display = currentWordIdx > 0 ? '' : 'none';
 
     const total = sessionWords.length;
@@ -858,6 +865,7 @@ function renderQuiz() {
   document.getElementById('quiz-input').className = 'input-big';
   document.getElementById('quiz-input').disabled = false;
   document.getElementById('quiz-hint-area').classList.add('hidden');
+  document.getElementById('quiz-feedback-star').style.display = 'none';
   document.getElementById('quiz-feedback').classList.add('hidden');
   quizHintLevel = 0;
 
@@ -953,6 +961,7 @@ function showQuizComplete() {
   feedbackWord.textContent = `${data.session.correct} / ${data.session.count}`;
   feedbackMeaning.textContent = '今日正确率';
   feedbackExample.style.display = 'none';
+  document.getElementById('quiz-feedback-star').style.display = 'none';
   feedbackEl.classList.remove('hidden');
 
   const btnLetterNext = document.getElementById('btn-letter-next');
@@ -1059,6 +1068,13 @@ function handleQuizResult(wd, isCorrect) {
     feedbackExample.style.display = wd.ex ? '' : 'none';
     feedbackEl.classList.remove('hidden');
 
+    const starBtn = document.getElementById('quiz-feedback-star');
+    const starId = 'star-btn-' + w.replace(/[^a-zA-Z0-9]/g, '');
+    starBtn.id = starId;
+    starBtn.textContent = data.starred && data.starred[w] ? '⭐' : '☆';
+    starBtn.style.display = '';
+    starBtn.onclick = () => toggleStar(w);
+
     if (isClickMode) {
       document.getElementById('letter-tile-options').classList.add('hidden');
       document.getElementById('btn-letter-clear').classList.add('hidden');
@@ -1158,6 +1174,20 @@ function renderStarredList() {
       <button class="kid-btn small pink" onclick="removeStar('${wd.w}')">取消收藏</button>
     </div>`;
   }).join('');
+}
+
+function toggleStar(w) {
+  if (!data.starred) data.starred = {};
+  if (data.starred[w]) {
+    delete data.starred[w];
+  } else {
+    data.starred[w] = true;
+  }
+  saveData();
+  const btn = document.getElementById('star-btn-' + w.replace(/[^a-zA-Z0-9]/g, ''));
+  if (btn) {
+    btn.textContent = data.starred[w] ? '⭐' : '☆';
+  }
 }
 
 function removeStar(w) {
