@@ -158,7 +158,7 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <div class="text-xs text-gray-400 mt-1 text-center" id="learn-progress-text">0 / 0</div>
       </div>
     </div>
-    <div class="card word-card" id="learn-card" style="padding:20px">
+    <div class="card word-card relative" id="learn-card" style="padding:20px">
         <div class="flex items-center justify-center gap-3 mb-1">
           <div class="word-display" id="learn-word" style="font-size:2.8rem">hello</div>
           <button id="btn-play-word" style="background:none;border:none;font-size:1.8rem;cursor:pointer;padding:4px;line-height:1;color:#3b82f6" title="点击发音">🔊</button>
@@ -173,6 +173,7 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
           <button class="kid-btn small outline" id="btn-prev" style="padding:6px 14px;font-size:.85rem">← 上一个</button>
           <button class="kid-btn small green" id="btn-know" style="padding:6px 14px;font-size:.85rem">下一个 →</button>
         </div>
+        <div class="absolute top-2 right-2 text-2xl cursor-pointer select-none hover:scale-110 transition-transform" id="learn-star-icon2" onclick="toggleLearnStar()" title="收藏">⭐</div>
       </div>
   </div>
 
@@ -214,11 +215,12 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <button class="kid-btn pink small" id="btn-quiz-skip" style="padding:6px 18px;font-size:.9rem"><span>⏭️</span> 跳过</button>
       </div>
     </div>
-    <div class="card word-card hidden" id="quiz-result-card">
+    <div class="card word-card hidden relative" id="quiz-result-card">
       <div class="text-5xl mb-3" id="quiz-result-icon">🎉</div>
       <div class="big-text text-2xl mb-2" id="quiz-result-title">正确！</div>
       <div class="word-display text-3xl mb-1" id="quiz-result-word">hello</div>
       <div class="text-gray-500 mb-4" id="quiz-result-meaning">你好</div>
+      <div class="absolute top-2 right-2 text-2xl cursor-pointer select-none hover:scale-110 transition-transform" id="star-btn-icon2" onclick="toggleStar()" title="收藏">⭐</div>
       <div class="bg-blue-50 rounded-xl p-3 mb-4 text-left max-w-sm mx-auto">
         <div class="text-xs text-gray-400 mb-1">📝 例句</div>
         <div class="font-medium text-sm" id="quiz-result-example">Hello, my name is Tom.</div>
@@ -939,6 +941,38 @@ function clearLetterTiles() {
   document.getElementById('quiz-hint-area').classList.add('hidden');
 }
 
+function toggleStar() {
+  const w = sessionWords[currentWordIdx];
+  const wd = getWordData(w);
+  if (!wd) return;
+  if (!data.starred) data.starred = {};
+  const icon = document.getElementById('star-btn-icon2');
+  if (data.starred[wd.w]) {
+    delete data.starred[wd.w];
+    if (icon) icon.textContent = '⭐';
+  } else {
+    data.starred[wd.w] = true;
+    if (icon) icon.textContent = '🌟';
+  }
+  saveData();
+}
+
+function toggleLearnStar() {
+  const w = sessionWords[currentWordIdx];
+  const wd = getWordData(w);
+  if (!wd) return;
+  if (!data.starred) data.starred = {};
+  const icon = document.getElementById('learn-star-icon2');
+  if (data.starred[wd.w]) {
+    delete data.starred[wd.w];
+    if (icon) icon.textContent = '⭐';
+  } else {
+    data.starred[wd.w] = true;
+    if (icon) icon.textContent = '🌟';
+  }
+  saveData();
+}
+
 function submitLetterAnswer() {
   const word = sessionWords[currentWordIdx];
   const wd = getWordData(word);
@@ -1000,6 +1034,8 @@ function skipWord() {
   if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
   if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
   document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
+  const sIcon = document.getElementById('star-btn-icon2');
+  if (sIcon) sIcon.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
   document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
   document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
 }
@@ -1034,6 +1070,8 @@ function showWordResult(wd, isCorrect) {
   } else {
     document.getElementById('quiz-result-example').textContent = wd.ex || '';
   }
+  const sStar = document.getElementById('star-btn-icon2');
+  if (sStar) sStar.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
 
   document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
   document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
@@ -1513,6 +1551,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
       if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
       document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
+      const sIcon2 = document.getElementById('star-btn-icon2');
+      if (sIcon2) sIcon2.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
       document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
       document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
     } else {

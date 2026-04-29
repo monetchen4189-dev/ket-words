@@ -819,10 +819,6 @@ function renderLearnWord() {
     document.getElementById('learn-example').textContent = wd.ex || '';
     speak(wd.w, 1);
 
-    const isStarred = data.starred && data.starred[wd.w];
-    const starIcon = document.getElementById('learn-star-icon2');
-    if (starIcon) starIcon.textContent = isStarred ? '🌟' : '⭐';
-
     document.getElementById('btn-prev').style.display = currentWordIdx > 0 ? '' : 'none';
 
     const total = sessionWords.length;
@@ -945,6 +941,38 @@ function clearLetterTiles() {
   document.getElementById('quiz-hint-area').classList.add('hidden');
 }
 
+function toggleStar() {
+  const w = sessionWords[currentWordIdx];
+  const wd = getWordData(w);
+  if (!wd) return;
+  if (!data.starred) data.starred = {};
+  const icon = document.getElementById('star-btn-icon2');
+  if (data.starred[wd.w]) {
+    delete data.starred[wd.w];
+    if (icon) icon.textContent = '⭐';
+  } else {
+    data.starred[wd.w] = true;
+    if (icon) icon.textContent = '🌟';
+  }
+  saveData();
+}
+
+function toggleLearnStar() {
+  const w = sessionWords[currentWordIdx];
+  const wd = getWordData(w);
+  if (!wd) return;
+  if (!data.starred) data.starred = {};
+  const icon = document.getElementById('learn-star-icon2');
+  if (data.starred[wd.w]) {
+    delete data.starred[wd.w];
+    if (icon) icon.textContent = '⭐';
+  } else {
+    data.starred[wd.w] = true;
+    if (icon) icon.textContent = '🌟';
+  }
+  saveData();
+}
+
 function submitLetterAnswer() {
   const word = sessionWords[currentWordIdx];
   const wd = getWordData(word);
@@ -996,55 +1024,18 @@ function skipWord() {
   }
   data.dailyRecords[t].total++;
   saveData();
-  showResultCard(wd, '🤔', '下次加油！');
-}
-
-function toggleStar() {
-  const w = sessionWords[currentWordIdx];
-  const wd = getWordData(w);
-  if (!wd) return;
-  if (!data.starred) data.starred = {};
-  const icon = document.getElementById('star-btn-icon2');
-  if (data.starred[wd.w]) {
-    delete data.starred[wd.w];
-    if (icon) icon.textContent = '⭐';
-  } else {
-    data.starred[wd.w] = true;
-    if (icon) icon.textContent = '🌟';
-  }
-  saveData();
-}
-
-function toggleLearnStar() {
-  const w = sessionWords[currentWordIdx];
-  const wd = getWordData(w);
-  if (!wd) return;
-  if (!data.starred) data.starred = {};
-  const icon = document.getElementById('learn-star-icon2');
-  if (data.starred[wd.w]) {
-    delete data.starred[wd.w];
-    if (icon) icon.textContent = '⭐';
-  } else {
-    data.starred[wd.w] = true;
-    if (icon) icon.textContent = '🌟';
-  }
-  saveData();
-}
-
-function showResultCard(wd, icon, title) {
   document.getElementById('quiz-card').classList.add('hidden');
   document.getElementById('quiz-result-card').classList.remove('hidden');
-  document.getElementById('quiz-result-icon').textContent = icon;
-  document.getElementById('quiz-result-title').textContent = title;
+  document.getElementById('quiz-result-icon').textContent = '🤔';
+  document.getElementById('quiz-result-title').textContent = '下次加油！';
   document.getElementById('quiz-result-word').textContent = wd.w;
   document.getElementById('quiz-result-meaning').textContent = wd.m || '';
   let extra = '';
   if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
   if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
   document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
-  const isStarred = data.starred && data.starred[wd.w];
-  document.getElementById('star-btn-icon').textContent = isStarred ? '🌟' : '⭐';
-  document.getElementById('star-btn-text').textContent = isStarred ? '已收藏' : '收藏';
+  const sIcon = document.getElementById('star-btn-icon2');
+  if (sIcon) sIcon.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
   document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
   document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
 }
@@ -1079,6 +1070,8 @@ function showWordResult(wd, isCorrect) {
   } else {
     document.getElementById('quiz-result-example').textContent = wd.ex || '';
   }
+  const sStar = document.getElementById('star-btn-icon2');
+  if (sStar) sStar.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
 
   document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
   document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
@@ -1548,7 +1541,20 @@ document.addEventListener('DOMContentLoaded', () => {
       data.dailyRecords[t].correct++;
       data.dailyRecords[t].total++;
       saveData();
-      showResultCard(wd, '🎉', '✅ 正确！');
+      document.getElementById('quiz-card').classList.add('hidden');
+      document.getElementById('quiz-result-card').classList.remove('hidden');
+      document.getElementById('quiz-result-icon').textContent = '🎉';
+      document.getElementById('quiz-result-title').textContent = '✅ 正确！';
+      document.getElementById('quiz-result-word').textContent = wd.w;
+      document.getElementById('quiz-result-meaning').textContent = wd.m || '';
+      let extra = '';
+      if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
+      if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
+      document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
+      const sIcon2 = document.getElementById('star-btn-icon2');
+      if (sIcon2) sIcon2.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
+      document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
+      document.getElementById('btn-quiz-next').onclick = () => { currentWordIdx++; renderQuiz(); };
     } else {
       data.wordStats[w].wrongCount = (data.wordStats[w].wrongCount || 0) + 1;
       if (!data.wrong) data.wrong = {};
@@ -1585,19 +1591,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const w = sessionWords[currentWordIdx];
     const wd = getWordData(w);
     if (!wd) return;
+    document.getElementById('quiz-card').classList.add('hidden');
+    document.getElementById('quiz-result-card').classList.remove('hidden');
+    document.getElementById('quiz-result-icon').textContent = '🤔';
+    document.getElementById('quiz-result-title').textContent = '下次加油！';
+    document.getElementById('quiz-result-word').textContent = wd.w;
+    document.getElementById('quiz-result-meaning').textContent = wd.m || '';
+    document.getElementById('quiz-result-example').textContent = wd.ex || '';
     if (!data.wrong) data.wrong = {};
     data.wrong[w] = (data.wrong[w] || 0) + 1;
     data.session.count = (data.session.count || 0) + 1;
     if (!data.todayDone) data.todayDone = {};
     data.todayDone[w] = true;
+    
     const t = today();
     if (!data.dailyRecords) data.dailyRecords = {};
     if (!data.dailyRecords[t]) {
       data.dailyRecords[t] = { date: t, wordsLearned: 0, wordsReviewed: 0, correct: 0, total: 0, duration: 0 };
     }
     data.dailyRecords[t].total++;
+    
     saveData();
-    showResultCard(wd, '🤔', '下次加油！');
+    document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
+    document.getElementById('btn-quiz-next').onclick = () => {
+      currentWordIdx++;
+      renderQuiz();
+    };
   };
 
   document.getElementById('setting-daily-count').onchange = (e) => { settings.dailyCount = parseInt(e.target.value); saveSettings(settings); };
