@@ -1355,6 +1355,7 @@ function renderStats() {
 
   const grid = document.getElementById('mastery-grid');
   const wStats = data.wordStats || {};
+  window._masteryWStats = wStats;
 
   const tabsEl = document.getElementById('category-tabs');
     const summaryEl = document.getElementById('category-summary');
@@ -1365,33 +1366,11 @@ function renderStats() {
     tabsEl.querySelectorAll('.cat-tab').forEach(tab => {
       tab.onclick = () => {
         window._currentCategory = tab.dataset.cat;
-        renderMasteryGrid();
+        window.renderMasteryGrid();
       };
     });
 
-    renderMasteryGrid();
-
-    function renderMasteryGrid() {
-      const cat = window._currentCategory || 'all';
-      tabsEl.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
-
-      const filtered = cat === 'all' ? ALL_WORDS : ALL_WORDS.filter(w => getWordTheme(w.w) === cat);
-      const catLearned = filtered.filter(w => wStats[w.w] && !wStats[w.w].mastered && (wStats[w.w].reviewCount || wStats[w.w].wrongCount)).length;
-      const catMastered = filtered.filter(w => wStats[w.w] && wStats[w.w].mastered).length;
-      const catTotal = filtered.length;
-      const label = cat === 'all' ? '' : (THEME_LABELS_ALL[cat] || cat);
-      summaryEl.textContent = cat === 'all' ? '' : `${label}：共 ${catTotal} 词，学习中 ${catLearned}，已掌握 ${catMastered}，未学 ${catTotal - catLearned - catMastered}`;
-
-      grid.innerHTML = filtered.map(w => {
-        const s = wStats[w.w];
-        let cls = 'word-chip';
-        if (!s) cls += '';
-        else if (s.mastered) cls += ' mastered';
-        else if (s.wrongCount > 0 || s.reviewCount) cls += ' wrong';
-        else cls += ' learned';
-        return `<div class="${cls}" title="${w.w}: ${w.m}">${w.w}</div>`;
-      }).join('');
-    }
+    window.renderMasteryGrid();
 
   const wrongRank = document.getElementById('wrong-ranking');
   const wrongSorted = Object.entries(wStats)
@@ -1432,6 +1411,34 @@ function renderStats() {
       </div>`;
     }).join('');
   }
+}
+
+/* ========== MASTERY GRID ========== */
+function renderMasteryGrid() {
+  const cat = window._currentCategory || 'all';
+  const wStats = window._masteryWStats || {};
+  const tabsEl = document.getElementById('category-tabs');
+  const summaryEl = document.getElementById('category-summary');
+  const grid = document.getElementById('mastery-grid');
+  if (!tabsEl || !grid) return;
+  tabsEl.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+
+  const filtered = cat === 'all' ? ALL_WORDS : ALL_WORDS.filter(w => getWordTheme(w.w) === cat);
+  const catLearned = filtered.filter(w => wStats[w.w] && !wStats[w.w].mastered && (wStats[w.w].reviewCount || wStats[w.w].wrongCount)).length;
+  const catMastered = filtered.filter(w => wStats[w.w] && wStats[w.w].mastered).length;
+  const catTotal = filtered.length;
+  const label = cat === 'all' ? '' : (THEME_LABELS_ALL[cat] || cat);
+  if (summaryEl) summaryEl.textContent = cat === 'all' ? '' : `${label}：共 ${catTotal} 词，学习中 ${catLearned}，已掌握 ${catMastered}，未学 ${catTotal - catLearned - catMastered}`;
+
+  grid.innerHTML = filtered.map(w => {
+    const s = wStats[w.w];
+    let cls = 'word-chip';
+    if (!s) cls += '';
+    else if (s.mastered) cls += ' mastered';
+    else if (s.wrongCount > 0 || s.reviewCount) cls += ' wrong';
+    else cls += ' learned';
+    return `<div class="${cls}" title="${w.w}: ${w.m}">${w.w}</div>`;
+  }).join('');
 }
 
 /* ========== SETTINGS ========== */
