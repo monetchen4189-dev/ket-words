@@ -775,14 +775,14 @@ function getMeaningsHTML(wd) {
           <span class="text-sm font-bold text-gray-800">${i+1}. ${item.def}</span>
         </div>
         ${hasBoth ? `<div class="text-xs text-gray-400 ml-1">🇬🇧 ${item.en}</div>` : ''}
-        ${item.ex ? `<div class="text-lg text-gray-500 ml-1 mt-1">📝 ${item.ex}</div>` : ''}
+        ${item.ex ? `<div class="text-xl text-gray-500 ml-1 mt-1">📝 ${item.ex}</div>` : ''}
       </div>`;
     }).join('');
   }
   // fallback
   let html = `<div class="text-sm text-gray-700">${wd.m || ''}</div>`;
-  if (wd.ex) html += `<div class="text-lg text-gray-500 mt-1">📝 ${wd.ex}</div>`;
-  if (wd.col) html += `<div class="mt-1"><span class="text-sm text-gray-400">🔗 搭配：</span><span class="text-lg">${wd.col}</span></div>`;
+  if (wd.ex) html += `<div class="text-xl text-gray-500 mt-1">📝 ${wd.ex}</div>`;
+  if (wd.col) html += `<div class="mt-1"><span class="text-base text-gray-400">🔗 搭配：</span><span class="text-xl">${wd.col}</span></div>`;
   return html;
 }
 
@@ -1129,8 +1129,8 @@ function skipWord() {
   document.getElementById('quiz-result-word').textContent = wd.w;
   document.getElementById('quiz-result-meaning').textContent = wd.m || '';
   let extra = '';
-  if (wd.col) extra += `<div class="mt-2"><span class="text-sm text-gray-400">🔗 搭配：</span><span class="text-lg">${wd.col}</span></div>`;
-  if (wd.tip) extra += `<div class="mt-1"><span class="text-sm text-gray-400">💡 记忆：</span><span class="text-lg">${wd.tip}</span></div>`;
+  if (wd.col) extra += `<div class="mt-2"><span class="text-base text-gray-400">🔗 搭配：</span><span class="text-xl">${wd.col}</span></div>`;
+  if (wd.tip) extra += `<div class="mt-1"><span class="text-base text-gray-400">💡 记忆：</span><span class="text-xl">${wd.tip}</span></div>`;
   document.getElementById('quiz-result-example').innerHTML = getMeaningsHTML(wd) + extra;
   const sIcon = document.getElementById('star-btn-icon2');
   if (sIcon) sIcon.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
@@ -1162,8 +1162,8 @@ function showWordResult(wd, isCorrect) {
 
   if (wd.col || wd.tip) {
     let extra = '';
-    if (wd.col) extra += `<div class="mt-2"><span class="text-sm text-gray-400">🔗 搭配：</span><span class="text-lg">${wd.col}</span></div>`;
-    if (wd.tip) extra += `<div class="mt-1"><span class="text-sm text-gray-400">💡 记忆：</span><span class="text-lg">${wd.tip}</span></div>`;
+    if (wd.col) extra += `<div class="mt-2"><span class="text-base text-gray-400">🔗 搭配：</span><span class="text-xl">${wd.col}</span></div>`;
+    if (wd.tip) extra += `<div class="mt-1"><span class="text-base text-gray-400">💡 记忆：</span><span class="text-xl">${wd.tip}</span></div>`;
     document.getElementById('quiz-result-example').innerHTML = (wd.ex || '') + extra;
   } else {
     document.getElementById('quiz-result-example').textContent = wd.ex || '';
@@ -1960,8 +1960,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('quiz-result-word').textContent = wd.w;
       document.getElementById('quiz-result-meaning').textContent = wd.m || '';
       let extra = '';
-      if (wd.col) extra += `<div class="mt-2"><span class="text-sm text-gray-400">🔗 搭配：</span><span class="text-lg">${wd.col}</span></div>`;
-      if (wd.tip) extra += `<div class="mt-1"><span class="text-sm text-gray-400">💡 记忆：</span><span class="text-lg">${wd.tip}</span></div>`;
+      if (wd.col) extra += `<div class="mt-2"><span class="text-base text-gray-400">🔗 搭配：</span><span class="text-xl">${wd.col}</span></div>`;
+      if (wd.tip) extra += `<div class="mt-1"><span class="text-base text-gray-400">💡 记忆：</span><span class="text-xl">${wd.tip}</span></div>`;
       document.getElementById('quiz-result-example').innerHTML = getMeaningsHTML(wd) + extra;
       const sIcon2 = document.getElementById('star-btn-icon2');
       if (sIcon2) sIcon2.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
