@@ -1445,7 +1445,7 @@ function applySettings() {
   document.getElementById('setting-break').value = settings.breakMin;
   document.getElementById('setting-music').checked = settings.music;
 
-  document.getElementById('app').className = 'min-h-screen';
+  document.getElementById('app').className = '';
   if (settings.theme === 'eye-saver') document.getElementById('app').classList.add('eye-saver');
   else if (settings.theme === 'simple') document.getElementById('app').classList.add('simple-mode');
 }
