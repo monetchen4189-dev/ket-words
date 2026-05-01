@@ -770,14 +770,14 @@ function getMeaningsHTML(wd) {
     const parts = [];
     if (wd.ex) {
       wd.ex.split('<br>').forEach(ex => {
-        if (ex.trim()) parts.push(`<div class="text-sm text-gray-500 mt-1">📝 ${ex.trim()}</div>`);
+        if (ex.trim()) parts.push(`<div class="text-base text-gray-500 mt-1">📝 ${ex.trim()}</div>`);
       });
     }
     if (wd.col) parts.push(`<div class="text-xs text-gray-400 mt-1">🔗 ${wd.col}</div>`);
     return parts.join('');
   }
   let html = `<div class="text-sm text-gray-700">${wd.m || ''}</div>`;
-  if (wd.ex) html += `<div class="text-sm text-gray-500 mt-1">📝 ${wd.ex}</div>`;
+  if (wd.ex) html += `<div class="text-base text-gray-500 mt-1">📝 ${wd.ex}</div>`;
   if (wd.col) html += `<div class="text-xs text-gray-400 mt-1">🔗 ${wd.col}</div>`;
   return html;
 }
