@@ -121,9 +121,9 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       </div>
     </div>
 
-    <div class="mt-4 card">
+    <div class="mt-4 card cursor-pointer hover:shadow-lg transition-shadow" id="btn-stats" onclick="renderStats();showPage('stats')">
       <div class="flex items-center justify-between mb-2">
-        <span class="font-bold text-gray-700">⭐ 学习统计</span>
+        <span class="font-bold text-gray-700">⭐ 学习统计 <span class="text-xs text-blue-400 font-normal">详情 →</span></span>
         <span class="text-sm text-gray-400" id="streak-count">连续 0 天</span>
       </div>
       <div class="grid grid-cols-3 gap-2 text-center" id="badge-grid">
