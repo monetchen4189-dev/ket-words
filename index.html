@@ -103,6 +103,12 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
     </div>
 
     <div class="space-y-3">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="font-bold text-gray-600 text-sm">📖 词库：</span>
+        <select class="kid-select flex-1 text-sm" id="bank-selector" onchange="switchBank(this.value)" style="padding:6px 28px 6px 10px;font-size:.85rem">
+          <option value="__ket__">KET 核心词汇</option>
+        </select>
+      </div>
       <div class="grid grid-cols-2 gap-3">
         <button class="kid-btn w-full justify-center text-lg" id="btn-start-learn" style="padding:20px 16px;flex-direction:column;gap:4px"><span style="font-size:2rem">📖</span> 学单词</button>
         <button class="kid-btn green w-full justify-center text-lg" id="btn-start-quiz" style="padding:20px 16px;flex-direction:column;gap:4px"><span style="font-size:2rem">✍️</span> 背单词</button>
@@ -110,7 +116,7 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       <div class="grid grid-cols-4 gap-2 mt-2">
         <button class="kid-btn orange small w-full justify-center" id="btn-wrong-words" style="padding:10px 4px;font-size:.85rem;flex-direction:column;gap:2px"><span>📕</span> 错题</button>
         <button class="kid-btn purple small w-full justify-center" id="btn-starred-words" style="padding:10px 4px;font-size:.85rem;flex-direction:column;gap:2px"><span>⭐</span> 收藏</button>
-        <button class="kid-btn outline small w-full justify-center" id="btn-stats" style="padding:10px 4px;font-size:.85rem;flex-direction:column;gap:2px"><span>📊</span> 统计</button>
+        <button class="kid-btn outline small w-full justify-center" id="btn-custom-banks" style="padding:10px 4px;font-size:.85rem;flex-direction:column;gap:2px"><span>📦</span> 词库</button>
         <button class="kid-btn outline small w-full justify-center" id="btn-settings" style="padding:10px 4px;font-size:.85rem;flex-direction:column;gap:2px"><span>⚙️</span> 设置</button>
       </div>
     </div>
@@ -221,8 +227,8 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       <div class="word-display text-3xl mb-1" id="quiz-result-word">hello</div>
       <div class="text-gray-500 mb-4" id="quiz-result-meaning">你好</div>
       <div class="absolute top-2 right-2 text-2xl cursor-pointer select-none hover:scale-110 transition-transform" id="star-btn-icon2" onclick="toggleStar()" title="收藏">⭐</div>
-      <div class="bg-blue-50 rounded-xl p-3 mb-4 text-left max-w-sm mx-auto">
-        <div class="text-xs text-gray-400 mb-1">📝 例句</div>
+      <div class="bg-blue-50 rounded-xl p-3 mb-4 text-left max-w-sm mx-auto" id="quiz-result-example-box">
+        <div class="text-xs text-gray-400 mb-1">📖 释义</div>
         <div class="font-medium text-sm" id="quiz-result-example">Hello, my name is Tom.</div>
       </div>
       <button class="kid-btn" id="btn-quiz-next"><span>➡️</span> 下一个</button>
@@ -376,6 +382,57 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
         <p class="text-xs text-gray-400 mt-1 text-center">仅清除学习进度，保留每日打卡记录</p>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ========== CUSTOM BANK: Manager ========== -->
+<div class="page" id="page-banks">
+  <div class="flex items-center gap-3 mb-4">
+    <button class="kid-btn small outline" onclick="renderHome();showPage('home')">← 返回</button>
+    <h2 class="font-bold text-xl text-gray-700 flex-1">📦 自定义词库</h2>
+    <button class="kid-btn small green" onclick="showPage('bank-add')">➕ 新建</button>
+  </div>
+  <div id="bank-list" class="space-y-2"></div>
+</div>
+
+<!-- ========== CUSTOM BANK: Add Words ========== -->
+<div class="page" id="page-bank-add">
+  <div class="flex items-center gap-3 mb-4">
+    <button class="kid-btn small outline" onclick="renderBankList();showPage('banks')">← 返回</button>
+    <h2 class="font-bold text-xl text-gray-700 flex-1" id="bank-add-title">新建词库</h2>
+  </div>
+  <div class="card mb-4">
+    <div class="mb-3">
+      <label class="block font-bold text-gray-700 mb-1">📛 词库名称</label>
+      <input type="text" class="input-big" id="bank-name-input" placeholder="输入词库名称..." style="font-size:1rem;padding:10px 14px;text-align:left;max-width:100%">
+    </div>
+    <div class="mb-3">
+      <label class="block font-bold text-gray-700 mb-1">➕ 添加单词（每行一个）</label>
+      <textarea class="input-big" id="bank-words-input" placeholder="apple&#10;banana&#10;cat" style="font-size:1rem;padding:10px 14px;text-align:left;max-width:100%;min-height:120px;resize:vertical"></textarea>
+    </div>
+    <button class="kid-btn w-full justify-center" id="btn-bank-save" onclick="saveCustomBank()" style="padding:12px;font-size:1rem">💾 保存词库</button>
+    <div id="bank-add-status" class="text-sm text-gray-500 mt-2 text-center"></div>
+  </div>
+</div>
+
+<!-- ========== CUSTOM BANK: 4-Choice Quiz ========== -->
+<div class="page" id="page-custom-quiz">
+  <div class="flex items-center gap-3 mb-4">
+    <button class="kid-btn small outline" onclick="renderHome();showPage('home')">← 返回</button>
+    <div class="flex-1">
+      <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div class="h-full bg-green-500 rounded-full transition-all" id="custom-quiz-bar" style="width:0%"></div>
+      </div>
+      <div class="text-xs text-gray-400 mt-1 text-center" id="custom-quiz-text">0 / 0</div>
+    </div>
+  </div>
+  <div class="card word-card" id="custom-quiz-card" style="padding:20px">
+    <div class="text-sm text-gray-400 mb-2">请选择正确的中文意思：</div>
+    <div class="word-display text-3xl mb-1" id="custom-quiz-word">hello</div>
+    <div class="phonetic-display text-sm mb-4" id="custom-quiz-phonetic">/həˈləʊ/</div>
+    <div id="custom-quiz-options" class="space-y-2 max-w-sm mx-auto"></div>
+    <div id="custom-quiz-feedback" class="hint-bar mt-3 hidden"></div>
+    <button class="kid-btn w-full justify-center mt-3" id="btn-custom-quiz-next" style="display:none"><span>➡️</span> 下一个</button>
   </div>
 </div>
 
@@ -669,7 +726,8 @@ function initSession() {
   }
 
   const dc = settings.dailyCount;
-  const newWordObjs = ALL_WORDS.filter(w => !stats[w.w] || (!stats[w.w].mastered && !stats[w.w].reviewCount));
+  const sourceWords = getCurrentWords();
+  const newWordObjs = sourceWords.filter(w => !stats[w.w] || (!stats[w.w].mastered && !stats[w.w].reviewCount));
   const newWords = newWordObjs.map(w => w.w);
   shuffleArray(newWords);
   shuffleArray(toReview);
@@ -685,7 +743,7 @@ function initSession() {
     sessionList = [...toReview.slice(0, reviewCount), ...newWords.slice(0, newCount)];
     shuffleArray(sessionList);
   }
-  if (sessionList.length === 0) sessionList = ALL_WORDS.map(w => w.w).slice(0, dc);
+  if (sessionList.length === 0) sessionList = sourceWords.map(w => w.w).slice(0, dc);
   data.todayWords = [...sessionList];
   data.todayDone = {};
   saveData();
@@ -696,7 +754,36 @@ function initSession() {
 }
 
 function getWordData(w) {
-  return ALL_WORDS.find(x => x.w === w) || null;
+  const r = ALL_WORDS.find(x => x.w === w);
+  if (r) return r;
+  const banks = loadCustomBanks();
+  const bid = settings.currentBank;
+  if (bid && bid !== '__ket__') {
+    const bank = banks.find(b => b.id === bid);
+    if (bank) return bank.words.find(x => x.w === w) || null;
+  }
+  return null;
+}
+
+function getMeaningsHTML(wd) {
+  if (wd.allMeanings && wd.allMeanings.length > 1) {
+    return wd.allMeanings.map((item, i) => {
+      const hasBoth = item.en && item.def && item.en !== item.def;
+      return `<div class="mb-2 ${i > 0 ? 'pt-2 border-t border-gray-100' : ''}">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded">${item.p || ''}</span>
+          <span class="text-sm font-bold text-gray-800">${i+1}. ${item.def}</span>
+        </div>
+        ${hasBoth ? `<div class="text-xs text-gray-400 ml-1">🇬🇧 ${item.en}</div>` : ''}
+        ${item.ex ? `<div class="text-xs text-gray-500 ml-1 mt-1">📝 ${item.ex}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+  // fallback
+  let html = `<div class="text-sm text-gray-700">${wd.m || ''}</div>`;
+  if (wd.ex) html += `<div class="text-xs text-gray-500 mt-1">📝 ${wd.ex}</div>`;
+  if (wd.col) html += `<div class="text-xs text-gray-400 mt-1">🔗 ${wd.col}</div>`;
+  return html;
 }
 
 function speak(text, rate = 1) {
@@ -717,6 +804,7 @@ function showPage(id) {
 
 /* ========== HOME ========== */
 function renderHome() {
+  renderBankSelector();
   const t = today();
   const dc = settings.dailyCount;
   const todayDone = data.todayDone || {};
@@ -809,6 +897,12 @@ function renderLearnWord() {
       showLearnComplete();
       return;
     }
+    // reset card state in case coming from showLearnComplete
+    const card = document.getElementById('learn-card');
+    card.querySelectorAll('div, button, .absolute').forEach(el => el.style.display = '');
+    card.querySelectorAll('.kid-btn.mt-4').forEach(el => el.remove());
+    document.getElementById('btn-know').style.display = '';
+
     const w = sessionWords[currentWordIdx];
     const wd = getWordData(w);
     if (!wd) { currentWordIdx++; renderLearnWord(); return; }
@@ -816,7 +910,7 @@ function renderLearnWord() {
     document.getElementById('learn-phonetic').textContent = wd.ph || '';
     document.getElementById('learn-pos').textContent = wd.p || '';
     document.getElementById('learn-meaning').textContent = wd.m || '';
-    document.getElementById('learn-example').textContent = wd.ex || '';
+    document.getElementById('learn-example').innerHTML = getMeaningsHTML(wd);
     speak(wd.w, 1);
 
     document.getElementById('btn-prev').style.display = currentWordIdx > 0 ? '' : 'none';
@@ -829,15 +923,19 @@ function renderLearnWord() {
 function showLearnComplete() {
   document.getElementById('learn-word').textContent = '🎉 完成！';
   document.getElementById('learn-phonetic').textContent = '今日学习已完成！';
-  document.querySelectorAll('#learn-card > div, #learn-card > button').forEach(el => {
-    if (el.id !== 'learn-word' && el.id !== 'learn-phonetic') el.style.display = 'none';
-  });
+  // reset card to clean state
+  const card = document.getElementById('learn-card');
+  // restore all child elements visibility
+  card.querySelectorAll('div, button, .absolute').forEach(el => el.style.display = '');
   document.getElementById('btn-know').style.display = 'none';
+  document.getElementById('btn-prev').style.display = 'none';
+  // remove any previously appended complete buttons
+  card.querySelectorAll('.kid-btn.mt-4').forEach(el => el.remove());
   const btn = document.createElement('button');
   btn.className = 'kid-btn w-full justify-center mt-4';
   btn.innerHTML = '<span>🏠</span> 返回首页';
   btn.onclick = () => { renderHome(); showPage('home'); };
-  document.getElementById('learn-card').appendChild(btn);
+  card.appendChild(btn);
   launchConfetti();
 }
 
@@ -1033,7 +1131,7 @@ function skipWord() {
   let extra = '';
   if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
   if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
-  document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
+  document.getElementById('quiz-result-example').innerHTML = getMeaningsHTML(wd) + extra;
   const sIcon = document.getElementById('star-btn-icon2');
   if (sIcon) sIcon.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
   document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
@@ -1060,7 +1158,7 @@ function showWordResult(wd, isCorrect) {
   document.getElementById('quiz-result-title').textContent = isCorrect ? '✅ 正确！' : '下次加油！';
   document.getElementById('quiz-result-word').textContent = wd.w;
   document.getElementById('quiz-result-meaning').textContent = wd.m || '';
-  document.getElementById('quiz-result-example').textContent = wd.ex || '';
+  document.getElementById('quiz-result-example').innerHTML = getMeaningsHTML(wd);
 
   if (wd.col || wd.tip) {
     let extra = '';
@@ -1401,6 +1499,313 @@ function resetData() {
   }
 }
 
+/* ========== CUSTOM BANKS ========== */
+const CUSTOM_BANKS_KEY = 'ket_custom_banks';
+
+function deduplicateMeanings(arr) {
+  const result = [];
+  const posGroups = {};
+  arr.forEach(a => {
+    if (!posGroups[a.p]) posGroups[a.p] = [];
+    posGroups[a.p].push(a);
+  });
+  const posKeys = Object.keys(posGroups);
+  for (let gi = 0; gi < posKeys.length && result.length < 6; gi++) {
+    const group = posGroups[posKeys[gi]];
+    for (const item of group) {
+      if (result.length >= 6) break;
+      const words = new Set(item.en.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3));
+      const isDup = result.some(existing => {
+        if (existing.p !== item.p) return false;
+        const existingWords = new Set(existing.en.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3));
+        let overlap = 0;
+        words.forEach(w => { if (existingWords.has(w)) overlap++; });
+        return words.size > 0 && overlap / words.size > 0.55;
+      });
+      if (!isDup) result.push(item);
+    }
+  }
+  return result;
+}
+
+function loadCustomBanks() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_BANKS_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveCustomBanks(banks) {
+  localStorage.setItem(CUSTOM_BANKS_KEY, JSON.stringify(banks));
+}
+
+function getCurrentWords() {
+  const bid = settings.currentBank || '__ket__';
+  if (bid === '__ket__') return ALL_WORDS;
+  const banks = loadCustomBanks();
+  const bank = banks.find(b => b.id === bid);
+  return bank ? bank.words : [];
+}
+
+function getCustomWordData(w) {
+  return getCurrentWords().find(x => x.w === w) || null;
+}
+
+function switchBank(bankId) {
+  settings.currentBank = bankId;
+  saveSettings(settings);
+  data.todayWords = [];
+  data.todayDone = {};
+  saveData();
+  renderHome();
+}
+
+function renderBankSelector() {
+  const sel = document.getElementById('bank-selector');
+  if (!sel) return;
+  const banks = loadCustomBanks();
+  const cur = settings.currentBank || '__ket__';
+  sel.innerHTML = '<option value="__ket__">KET 核心词汇</option>';
+  banks.forEach(b => {
+    sel.innerHTML += `<option value="${b.id}">📦 ${b.name}</option>`;
+  });
+  sel.value = cur;
+}
+
+function renderBankList() {
+  const list = document.getElementById('bank-list');
+  const banks = loadCustomBanks();
+  if (banks.length === 0) {
+    list.innerHTML = '<div class="card text-center text-gray-400 py-8">暂无自定义词库，点击右上角「➕ 新建」创建</div>';
+    return;
+  }
+  list.innerHTML = banks.map(b => {
+    const wc = (b.words || []).length;
+    const isCustom = settings.currentBank === b.id;
+    return `<div class="card flex items-center justify-between">
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-lg">📦 ${b.name}</span>
+          ${isCustom ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">使用中</span>' : ''}
+        </div>
+        <div class="text-sm text-gray-500">${wc} 个单词</div>
+      </div>
+      <div class="flex gap-2 flex-wrap justify-end">
+        <button class="kid-btn small green" onclick="startCustomLearn('${b.id}')" style="padding:4px 10px;font-size:.8rem">📖 学习</button>
+        <button class="kid-btn small purple" onclick="startCustomQuiz('${b.id}')" style="padding:4px 10px;font-size:.8rem">✍️ 背单词</button>
+        <button class="kid-btn small orange" onclick="editBank('${b.id}')" style="padding:4px 10px;font-size:.8rem">✏️ 编辑</button>
+        <button class="kid-btn small pink" onclick="deleteBank('${b.id}')" style="padding:4px 10px;font-size:.8rem">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function useBank(bankId) {
+  switchBank(bankId);
+  renderHome();
+  showPage('home');
+}
+
+function deleteBank(bankId) {
+  if (!confirm('确定删除这个词库吗？')) return;
+  const banks = loadCustomBanks();
+  const idx = banks.findIndex(b => b.id === bankId);
+  if (idx >= 0) {
+    banks.splice(idx, 1);
+    saveCustomBanks(banks);
+    if (settings.currentBank === bankId) {
+      settings.currentBank = '__ket__';
+      saveSettings(settings);
+    }
+    renderBankList();
+    renderBankSelector();
+    renderHome();
+  }
+}
+
+function editBank(bankId) {
+  const banks = loadCustomBanks();
+  const bank = banks.find(b => b.id === bankId);
+  if (!bank) return;
+  document.getElementById('bank-add-title').textContent = '✏️ 编辑词库';
+  document.getElementById('bank-name-input').value = bank.name;
+  document.getElementById('bank-words-input').value = (bank.words || []).map(w => w.w).join('\n');
+  document.getElementById('btn-bank-save').dataset.editId = bankId;
+  showPage('bank-add');
+}
+
+function saveCustomBank() {
+  const name = document.getElementById('bank-name-input').value.trim();
+  const raw = document.getElementById('bank-words-input').value.trim();
+  const status = document.getElementById('bank-add-status');
+  if (!name) { status.textContent = '❌ 请输入词库名称'; return; }
+  const wordList = raw.split('\n').map(w => w.trim().toLowerCase()).filter(w => w && /^[a-z]+$/.test(w));
+  if (wordList.length === 0) { status.textContent = '❌ 请输入至少一个有效英文单词'; return; }
+  status.textContent = `⏳ 正在查询 ${wordList.length} 个单词...`;
+
+  const editId = document.getElementById('btn-bank-save').dataset.editId;
+  const banks = loadCustomBanks();
+  if (!editId && banks.find(b => b.name === name)) {
+    status.textContent = '❌ 词库名已存在'; return;
+  }
+
+  const bank = editId ? banks.find(b => b.id === editId) : { id: 'bank_' + Date.now(), name: '', words: [] };
+  if (!bank) return;
+  bank.name = name;
+  // when editing, clear old words and re-fetch everything to ensure fresh data with allMeanings
+  const oldWords = bank.words || [];
+  bank.words = [];
+
+  // collect previously fetched words to avoid re-fetching if already have allMeanings
+  const wordToOld = {};
+  oldWords.forEach(ow => { wordToOld[ow.w.toLowerCase()] = ow; });
+
+  let completed = 0;
+  wordList.forEach(w => {
+    const existing = wordToOld[w];
+    if (existing && existing.allMeanings && existing.allMeanings[0]?.en) {
+      bank.words.push(existing);
+      completed++; checkDone(); return;
+    }
+    fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(w))
+      .then(r => r.json())
+      .then(d => {
+        if (d && d[0]) {
+          const wd = d[0];
+          const raw = [];
+          wd.meanings.forEach(m => {
+            m.definitions.forEach(def => {
+              raw.push({ p: m.partOfSpeech, def: def.definition || '', en: def.definition || '', ex: def.example || '' });
+            });
+          });
+          const all = deduplicateMeanings(raw);
+          // translate definitions to Chinese
+          const textsToTranslate = all.map(a => a.def).filter(t => t);
+          if (textsToTranslate.length > 0) {
+            const q = textsToTranslate.join('\n');
+            fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(q) + '&langpair=en|zh-CN')
+              .then(r => r.json())
+              .then(tr => {
+                const translated = (tr?.responseData?.translatedText || '').split('\n');
+                all.forEach((a, i) => { if (translated[i]) a.def = translated[i]; });
+                finalizeWord(wd.word || w, wd, all);
+              })
+              .catch(() => finalizeWord(wd.word || w, wd, all));
+          } else {
+            finalizeWord(wd.word || w, wd, all);
+          }
+        } else {
+          bank.words.push({ w, m: w, ph: '', p: '', ex: '', col: '', allMeanings: [{p:'',def:w,en:w,ex:''}] });
+          completed++; checkDone();
+        }
+      })
+      .catch(() => { bank.words.push({ w, m: w, ph: '', p: '', ex: '', col: '', allMeanings: [{p:'',def:w,en:w,ex:''}] }); completed++; checkDone(); });
+  });
+
+  function finalizeWord(word, wd, all) {
+    bank.words.push({
+      w: word, ph: wd.phonetic || '',
+      p: all[0]?.p || '',
+      m: all[0]?.def || word,
+      ex: all[0]?.ex || '',
+      col: wd.meanings?.slice(0,2).map(mm => mm.partOfSpeech + '. ' + (mm.definitions?.[0]?.definition || '')).join('；') || '',
+      allMeanings: all
+    });
+    completed++; checkDone();
+  }
+
+  function checkDone() {
+    if (completed < wordList.length) return;
+    if (!editId) banks.push(bank);
+    saveCustomBanks(banks);
+    status.textContent = `✅ 保存成功！共 ${bank.words.length} 个单词。`;
+    document.getElementById('btn-bank-save').dataset.editId = '';
+    document.getElementById('bank-name-input').value = '';
+    document.getElementById('bank-words-input').value = '';
+    renderBankSelector();
+    renderHome();
+  }
+}
+
+// ---- Custom Bank: Learn Mode ----
+function startCustomLearn(bankId) {
+  const banks = loadCustomBanks();
+  const bank = banks.find(b => b.id === bankId);
+  if (!bank || !bank.words.length) { alert('词库为空'); return; }
+  switchBank(bankId);
+  sessionWords = bank.words.map(w => w.w);
+  shuffleArray(sessionWords);
+  currentWordIdx = 0;
+  isLearningMode = true;
+  showPage('learn');
+  renderLearnWord();
+}
+
+// ---- Custom Bank: 4-Choice Quiz ----
+let _customQuizWords = [];
+let _customQuizIdx = 0;
+
+function startCustomQuiz(bankId) {
+  const banks = loadCustomBanks();
+  const bank = banks.find(b => b.id === bankId);
+  if (!bank || !bank.words.length) { alert('词库为空'); return; }
+  switchBank(bankId);
+  _customQuizWords = shuffleArray([...bank.words]);
+  _customQuizIdx = 0;
+  showPage('custom-quiz');
+  renderCustomQuiz();
+}
+
+function renderCustomQuiz() {
+  if (_customQuizIdx >= _customQuizWords.length) {
+    document.getElementById('custom-quiz-card').innerHTML = '<div class="text-center py-8"><div class="text-5xl mb-3">🎉</div><div class="big-text text-2xl">完成！</div><button class="kid-btn mt-4" onclick="renderHome();showPage(\'home\')">🏠 返回首页</button></div>';
+    launchConfetti();
+    return;
+  }
+  const wd = _customQuizWords[_customQuizIdx];
+  document.getElementById('custom-quiz-word').textContent = wd.w;
+  document.getElementById('custom-quiz-phonetic').textContent = wd.ph || '';
+  document.getElementById('custom-quiz-feedback').classList.add('hidden');
+  document.getElementById('btn-custom-quiz-next').style.display = 'none';
+
+  const options = [wd.m];
+  const pool = _customQuizWords.filter(w => w.w !== wd.w);
+  shuffleArray(pool);
+  for (let i = 0; i < Math.min(3, pool.length); i++) {
+    options.push(pool[i].m);
+  }
+  shuffleArray(options);
+
+  document.getElementById('custom-quiz-options').innerHTML = options.map(o =>
+    `<div class="kid-btn small outline w-full justify-center custom-quiz-opt" onclick="checkCustomQuiz(this,'${wd.m.replace(/'/g,"\\'")}')" style="padding:12px;font-size:1rem;display:flex">${o}</div>`
+  ).join('');
+
+  document.getElementById('custom-quiz-bar').style.width = (_customQuizIdx / _customQuizWords.length * 100) + '%';
+  document.getElementById('custom-quiz-text').textContent = `${_customQuizIdx + 1} / ${_customQuizWords.length}`;
+}
+
+function checkCustomQuiz(el, correctMeaning) {
+  document.querySelectorAll('.custom-quiz-opt').forEach(b => b.style.pointerEvents = 'none');
+  const chosen = el.textContent.trim();
+  const isCorrect = chosen === correctMeaning;
+  el.classList.add(isCorrect ? 'correct' : 'wrong');
+  if (isCorrect) el.style.borderColor = '#10b981';
+  else el.style.borderColor = '#ef4444';
+  document.querySelectorAll('.custom-quiz-opt').forEach(b => {
+    if (b.textContent.trim() === correctMeaning) b.style.borderColor = '#10b981';
+  });
+  const fb = document.getElementById('custom-quiz-feedback');
+  fb.classList.remove('hidden');
+  fb.innerHTML = isCorrect
+    ? `✅ 正确！${_customQuizWords[_customQuizIdx].w} = ${correctMeaning}`
+    : `❌ 错误！${_customQuizWords[_customQuizIdx].w} = ${correctMeaning}`;
+
+  document.getElementById('btn-custom-quiz-next').style.display = '';
+  document.getElementById('btn-custom-quiz-next').onclick = () => {
+    _customQuizIdx++;
+    renderCustomQuiz();
+  };
+  speak(_customQuizWords[_customQuizIdx].w);
+}
+
 /* ========== EVENT BINDING ========== */
 document.addEventListener('DOMContentLoaded', () => {
   applySettings();
@@ -1410,7 +1815,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-start-quiz').onclick = startQuiz;
   document.getElementById('btn-wrong-words').onclick = () => { renderWrongList(); showPage('wrong'); };
   document.getElementById('btn-starred-words').onclick = () => { renderStarredList(); showPage('starred'); };
-  document.getElementById('btn-stats').onclick = () => { renderStats(); showPage('stats'); };
+  document.getElementById('btn-custom-banks').onclick = () => { renderBankList(); showPage('banks'); };
   document.getElementById('btn-settings').onclick = () => { applySettings(); showPage('settings'); };
 
   document.getElementById('btn-back-home-lo').onclick = () => { renderHome(); showPage('home'); };
@@ -1550,7 +1955,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let extra = '';
       if (wd.col) extra += `<div class="mt-2"><span class="text-xs text-gray-400">🔗 搭配：</span><span class="text-sm">${wd.col}</span></div>`;
       if (wd.tip) extra += `<div class="mt-1"><span class="text-xs text-gray-400">💡 记忆：</span><span class="text-sm">${wd.tip}</span></div>`;
-      document.getElementById('quiz-result-example').innerHTML = (wd.ex ? `<span class="text-xs text-gray-400">📝 例句：</span><span class="text-sm">${wd.ex}</span>` : '') + extra;
+      document.getElementById('quiz-result-example').innerHTML = getMeaningsHTML(wd) + extra;
       const sIcon2 = document.getElementById('star-btn-icon2');
       if (sIcon2) sIcon2.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
       document.getElementById('btn-quiz-next').innerHTML = '<span>➡️</span> 下一个';
