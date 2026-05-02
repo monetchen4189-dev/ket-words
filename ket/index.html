@@ -940,6 +940,17 @@ function showLearnComplete() {
 
 /* ========== QUIZ ========== */
 function startQuiz() {
+  if (settings.currentBank && settings.currentBank !== '__ket__') {
+    const banks = loadCustomBanks();
+    const bank = banks.find(b => b.id === settings.currentBank);
+    if (bank && bank.words && bank.words.length > 0) {
+      _customQuizWords = shuffleArray([...bank.words]);
+      _customQuizIdx = 0;
+      showPage('custom-quiz');
+      renderCustomQuiz();
+      return;
+    }
+  }
   initSession();
   isLearningMode = false;
   showPage('quiz');
