@@ -951,6 +951,16 @@ function startQuiz() {
       renderCustomQuiz();
       return;
     }
+    settings.currentBank = '__ket__';
+    saveSettings(settings);
+  }
+  if (data.todayWords && data.todayWords.length > 0) {
+    const valid = data.todayWords.every(w => ALL_WORDS.some(aw => aw.w === w));
+    if (!valid) {
+      data.todayWords = [];
+      data.todayDone = {};
+      saveData();
+    }
   }
   initSession();
   isLearningMode = false;
