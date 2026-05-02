@@ -682,6 +682,13 @@ function today() {
 
 function initSession() {
   const t = today();
+  const bankChanged = data._lastBankId !== settings.currentBank;
+  if (bankChanged) {
+    data.todayWords = [];
+    data.todayDone = {};
+    data._lastBankId = settings.currentBank;
+    saveData();
+  }
   if (data.session.date !== t) {
     data.session = { date: t, count: 0, correct: 0 };
     data.todayWords = [];
@@ -953,14 +960,6 @@ function startQuiz() {
     }
     settings.currentBank = '__ket__';
     saveSettings(settings);
-  }
-  if (data.todayWords && data.todayWords.length > 0) {
-    const valid = data.todayWords.every(w => ALL_WORDS.some(aw => aw.w === w));
-    if (!valid) {
-      data.todayWords = [];
-      data.todayDone = {};
-      saveData();
-    }
   }
   initSession();
   isLearningMode = false;
