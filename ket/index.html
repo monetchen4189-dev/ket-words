@@ -84,9 +84,11 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
 <div id="app">
   <div class="page active min-h-screen" id="page-home">
     <div class="text-center pt-8 pb-4">
-      <div class="text-5xl mb-2">📚</div>
-      <h1 class="big-text">KET 单词小达人</h1>
-      <p class="text-gray-500 mt-1 text-lg">每天进步一点点</p>
+      <div class="flex items-center justify-center gap-3 mb-2">
+        <span class="text-4xl">📚</span>
+        <h1 class="big-text">KET 单词小达人</h1>
+      </div>
+      <p class="text-gray-500 text-base" id="daily-quote">每天进步一点点</p>
     </div>
 
     <div class="card mb-4 text-center" id="today-summary">
@@ -833,6 +835,36 @@ function renderHome() {
     }
   }
   document.getElementById('streak-count').textContent = `连续 ${streak} 天`;
+
+  const quotes = [
+    'Every day is a new adventure! 🌟',
+    'You are smarter than you think! 💪',
+    'Mistakes help us learn and grow. 🌱',
+    'The more you read, the more you know! 📖',
+    'Believe you can and you\'re halfway there. ✨',
+    'Small steps lead to big things. 🚀',
+    'Practice makes progress, not perfect. 👍',
+    'You can do hard things! 🏆',
+    'Learning is a treasure that will follow you everywhere. 💎',
+    'Be curious, not judgmental. 🧠',
+    'Every expert was once a beginner. 🌈',
+    'Your brain is like a muscle — use it! 💪',
+    'Today is a great day to learn something new! 🎉',
+    'Don\'t give up — great things take time. ⏳',
+    'The secret of getting ahead is getting started. 🏃',
+    'You are amazing just the way you are! 🌟',
+    'Words are the building blocks of stories. 🧱',
+    'Learning English opens doors to the world. 🌍',
+    'Be kind to yourself and keep trying. 💖',
+    'Every word you learn is a superpower! 🦸',
+    'Dream big, little one! 🌙',
+    'The only way to do great work is to love what you do. ❤️',
+    'You have brains in your head. You can go anywhere! 🚂',
+    'Today will be a wonderful day! ☀️',
+    'Be a rainbow in someone else\'s cloud. 🌈',
+  ];
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  document.getElementById('daily-quote').textContent = quotes[dayOfYear % quotes.length];
 
   document.getElementById('home-today-count').textContent = todayDoneCount;
 
