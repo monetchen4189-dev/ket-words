@@ -870,7 +870,7 @@ function initSession() {
     }
     saveData();
   }
-  if (data.todayWords && data.todayWords.length > 0) {
+  if (data.todayWords && data.todayWords.length > 0 && data.todayWords.length === settings.dailyCount) {
     sessionWords = [...data.todayWords];
     currentWordIdx = 0;
     dailyCount = 0;
