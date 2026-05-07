@@ -925,6 +925,11 @@ function initSession() {
 }
 
 function getWordData(w) {
+  // When using KET写作高频词, check that bank first to get pt (past tense) field
+  if (settings.currentBank === '__ket_writing__') {
+    const wr = KET_WRITING_WORDS.find(x => x.w === w);
+    if (wr) return wr;
+  }
   const r = ALL_WORDS.find(x => x.w === w);
   if (r) return r;
   const wr = KET_WRITING_WORDS.find(x => x.w === w);
