@@ -1103,7 +1103,7 @@ function renderQuiz() {
   // Show past tense input for verbs in KET写作高频词
   const ptArea = document.getElementById('past-tense-area');
   document.getElementById('pt-input').value = '';
-  if (settings.currentBank === '__ket_writing__' && wd.pt) {
+  if (wd.pt) {
     ptArea.classList.remove('hidden');
   } else {
     ptArea.classList.add('hidden');
