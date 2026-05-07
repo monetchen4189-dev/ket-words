@@ -222,6 +222,10 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
           <button class="kid-btn small pink" id="btn-letter-skip" onclick="skipWord()" style="padding:4px 12px;font-size:.8rem">⏭️ 跳过</button>
         </div>
       </div>
+      <div id="past-tense-area" class="hidden mb-3 p-3 bg-yellow-50 rounded-xl" style="border:1px solid #fcd34d">
+        <div class="text-sm font-bold text-yellow-700 mb-2">⏪ 过去式</div>
+        <input type="text" class="input-big" id="pt-input" placeholder="输入过去式..." autocomplete="off" autocapitalize="off" spellcheck="false" style="font-size:1.1rem;padding:10px 14px;max-width:220px">
+      </div>
       <div class="flex gap-2 justify-center" id="quiz-action-bar">
         <button class="kid-btn small orange" id="btn-quiz-hint2" style="padding:6px 12px;font-size:.8rem"><span>💡</span> 提示</button>
         <button class="kid-btn green small" id="btn-quiz-submit" style="padding:6px 18px;font-size:.9rem"><span>✅</span> 确认</button>
@@ -699,31 +703,31 @@ const THEME_LABELS_ALL = {...THEME_LABELS, other:"📦 其他"};
 const ALL_WORDS = typeof KET_WORDS_A !== 'undefined' ? KET_WORDS_A : [];
 
 const KET_WRITING_WORDS = [
-  {w:"go",m:"去",p:"v.",ex:"I go to school by bus.",col:"go home / go to school"},
-  {w:"come",m:"来",p:"v.",ex:"Come here, please.",col:"come in / come from"},
-  {w:"get",m:"得到；拿",p:"v.",ex:"I get a gift.",col:"get up / get home"},
-  {w:"give",m:"给",p:"v.",ex:"Give me the book.",col:"give up / give back"},
-  {w:"take",m:"拿；带走",p:"v.",ex:"Take your umbrella.",col:"take care / take a photo"},
-  {w:"make",m:"制作；做",p:"v.",ex:"Let's make a cake.",col:"make friends / make a mistake"},
-  {w:"do",m:"做",p:"v.",ex:"Do your homework.",col:"do the dishes / do well"},
-  {w:"have",m:"有；吃",p:"v.",ex:"I have a pet dog.",col:"have breakfast / have fun"},
+  {w:"go",m:"去",p:"v.",ex:"I go to school by bus.",col:"go home / go to school",pt:"went"},
+  {w:"come",m:"来",p:"v.",ex:"Come here, please.",col:"come in / come from",pt:"came"},
+  {w:"get",m:"得到；拿",p:"v.",ex:"I get a gift.",col:"get up / get home",pt:"got"},
+  {w:"give",m:"给",p:"v.",ex:"Give me the book.",col:"give up / give back",pt:"gave"},
+  {w:"take",m:"拿；带走",p:"v.",ex:"Take your umbrella.",col:"take care / take a photo",pt:"took"},
+  {w:"make",m:"制作；做",p:"v.",ex:"Let's make a cake.",col:"make friends / make a mistake",pt:"made"},
+  {w:"do",m:"做",p:"v.",ex:"Do your homework.",col:"do the dishes / do well",pt:"did"},
+  {w:"have",m:"有；吃",p:"v.",ex:"I have a pet dog.",col:"have breakfast / have fun",pt:"had"},
   {w:"has",m:"有（三单）",p:"v.",ex:"She has a new bag.",col:"has got / has to"},
   {w:"had",m:"有（过去式）",p:"v.",ex:"I had a good day.",col:"had better"},
-  {w:"eat",m:"吃",p:"v.",ex:"Let's eat lunch.",col:"eat out / eat up"},
-  {w:"drink",m:"喝",p:"v.",ex:"Drink some water.",col:"drink milk / drink juice"},
-  {w:"see",m:"看见；明白",p:"v.",ex:"I see a bird.",col:"see you / see a movie"},
-  {w:"say",m:"说",p:"v.",ex:"Say hello to Tom.",col:"say sorry / say goodbye"},
-  {w:"tell",m:"告诉",p:"v.",ex:"Tell me a story.",col:"tell a lie / tell the truth"},
-  {w:"ask",m:"问；请求",p:"v.",ex:"Ask a question.",col:"ask for / ask about"},
-  {w:"answer",m:"回答",p:"v.",ex:"Answer the phone.",col:"answer the question"},
-  {w:"help",m:"帮助",p:"v.",ex:"Help me, please.",col:"help out / help with"},
-  {w:"use",m:"使用",p:"v.",ex:"Use a pencil.",col:"use up / use for"},
-  {w:"try",m:"尝试",p:"v.",ex:"Try again!",col:"try on / try out"},
-  {w:"like",m:"喜欢",p:"v.",ex:"I like apples.",col:"look like / feel like"},
-  {w:"love",m:"爱；喜欢",p:"v.",ex:"I love my family.",col:"love to / be in love"},
-  {w:"enjoy",m:"享受；喜欢",p:"v.",ex:"Enjoy your meal.",col:"enjoy doing / enjoy oneself"},
-  {w:"want",m:"想要",p:"v.",ex:"I want a new toy.",col:"want to / want for"},
-  {w:"need",m:"需要",p:"v.",ex:"I need help.",col:"need to / in need"},
+  {w:"eat",m:"吃",p:"v.",ex:"Let's eat lunch.",col:"eat out / eat up",pt:"ate"},
+  {w:"drink",m:"喝",p:"v.",ex:"Drink some water.",col:"drink milk / drink juice",pt:"drank"},
+  {w:"see",m:"看见；明白",p:"v.",ex:"I see a bird.",col:"see you / see a movie",pt:"saw"},
+  {w:"say",m:"说",p:"v.",ex:"Say hello to Tom.",col:"say sorry / say goodbye",pt:"said"},
+  {w:"tell",m:"告诉",p:"v.",ex:"Tell me a story.",col:"tell a lie / tell the truth",pt:"told"},
+  {w:"ask",m:"问；请求",p:"v.",ex:"Ask a question.",col:"ask for / ask about",pt:"asked"},
+  {w:"answer",m:"回答",p:"v.",ex:"Answer the phone.",col:"answer the question",pt:"answered"},
+  {w:"help",m:"帮助",p:"v.",ex:"Help me, please.",col:"help out / help with",pt:"helped"},
+  {w:"use",m:"使用",p:"v.",ex:"Use a pencil.",col:"use up / use for",pt:"used"},
+  {w:"try",m:"尝试",p:"v.",ex:"Try again!",col:"try on / try out",pt:"tried"},
+  {w:"like",m:"喜欢",p:"v.",ex:"I like apples.",col:"look like / feel like",pt:"liked"},
+  {w:"love",m:"爱；喜欢",p:"v.",ex:"I love my family.",col:"love to / be in love",pt:"loved"},
+  {w:"enjoy",m:"享受；喜欢",p:"v.",ex:"Enjoy your meal.",col:"enjoy doing / enjoy oneself",pt:"enjoyed"},
+  {w:"want",m:"想要",p:"v.",ex:"I want a new toy.",col:"want to / want for",pt:"wanted"},
+  {w:"need",m:"需要",p:"v.",ex:"I need help.",col:"need to / in need",pt:"needed"},
   {w:"went",m:"去（过去式）",p:"v.",ex:"We went to the park.",col:"go-went-gone"},
   {w:"came",m:"来（过去式）",p:"v.",ex:"He came home late.",col:"come-came-come"},
   {w:"saw",m:"看见（过去式）",p:"v.",ex:"I saw a rainbow.",col:"see-saw-seen"},
@@ -1195,6 +1199,14 @@ function renderQuiz() {
 
   updateStarIcons(wd.w);
 
+  // Show past tense input for verbs in KET写作高频词
+  const ptArea = document.getElementById('past-tense-area');
+  document.getElementById('pt-input').value = '';
+  if (settings.currentBank === '__ket_writing__' && wd.pt) {
+    ptArea.classList.remove('hidden');
+  } else {
+    ptArea.classList.add('hidden');
+  }
 
   const isClickMode = settings.spellMode === 'click';
   document.getElementById('quiz-input').style.display = isClickMode ? 'none' : '';
@@ -1313,9 +1325,15 @@ function submitLetterAnswer() {
   if (!wd || _tileAnswer.length === 0) return;
   const answer = _tileAnswer.map(t => t.ch).join('');
   const isCorrect = answer.toLowerCase() === wd.w.toLowerCase();
+  const hasPT = !document.getElementById('past-tense-area').classList.contains('hidden');
+  let ptCorrect = true;
+  if (hasPT) {
+    const ptInput = document.getElementById('pt-input').value.trim().toLowerCase().replace(/\s+/g, '');
+    ptCorrect = ptInput === wd.pt.toLowerCase();
+  }
   
   if (isCorrect) {
-    if (window.doQuizResult) window.doQuizResult(wd, true);
+    if (window.doQuizResult) window.doQuizResult(wd, true, ptCorrect);
   } else {
     document.querySelectorAll('#letter-tile-answer .letter-tile').forEach(el => {
       el.classList.add('wrong-tile');
@@ -2222,11 +2240,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('quiz-input').value.trim().toLowerCase().replace(/\s+/g, '');
     const answer = wd.w.toLowerCase().replace(/\s+/g, '');
     const isCorrect = input === answer;
-    doQuizResult(wd, isCorrect);
+    const hasPT = !document.getElementById('past-tense-area').classList.contains('hidden');
+    let ptCorrect = true;
+    if (hasPT) {
+      const ptInput = document.getElementById('pt-input').value.trim().toLowerCase().replace(/\s+/g, '');
+      ptCorrect = ptInput === wd.pt.toLowerCase();
+    }
+    doQuizResult(wd, isCorrect, ptCorrect);
   };
 
-  function doQuizResult(wd, isCorrect) {
+  function doQuizResult(wd, isCorrect, ptCorrect) {
     const w = wd.w;
+    const hasPT = !document.getElementById('past-tense-area').classList.contains('hidden');
+    const allCorrect = hasPT ? (isCorrect && ptCorrect) : isCorrect;
     if (!data.wordStats) data.wordStats = {};
     if (!data.wordStats[w]) data.wordStats[w] = { reviewCount: 0, wrongCount: 0, mastered: false, lastReview: null };
     if (!data.history) data.history = {};
@@ -2255,16 +2281,28 @@ document.addEventListener('DOMContentLoaded', () => {
       else data.dailyRecords[t].wordsReviewed++;
       data.dailyRecords[t].correct++;
       data.dailyRecords[t].total++;
+    }
+
+    const allCorrectResult = hasPT ? allCorrect : isCorrect;
+    if (allCorrectResult || isCorrect) {
       saveData();
       document.getElementById('quiz-card').classList.add('hidden');
       document.getElementById('quiz-result-card').classList.remove('hidden');
-      document.getElementById('quiz-result-icon').textContent = '🎉';
-      document.getElementById('quiz-result-title').textContent = '✅ 正确！';
+      if (allCorrectResult) {
+        document.getElementById('quiz-result-icon').textContent = '🎉';
+        document.getElementById('quiz-result-title').textContent = '✅ 正确！';
+      } else {
+        document.getElementById('quiz-result-icon').textContent = '⚠️';
+        document.getElementById('quiz-result-title').textContent = '单词正确，但过去式有误';
+      }
       document.getElementById('quiz-result-word').textContent = wd.w;
       document.getElementById('quiz-result-meaning').textContent = wd.m || '';
       let extra = '';
       if (wd.col) extra += `<div class="mt-2"><span class="text-base text-gray-400">🔗 搭配：</span><span class="text-xl">${wd.col}</span></div>`;
       if (wd.tip) extra += `<div class="mt-1"><span class="text-base text-gray-400">💡 记忆：</span><span class="text-xl">${wd.tip}</span></div>`;
+      if (hasPT) {
+        extra += `<div class="mt-2"><span class="text-base text-gray-400">⏪ 过去式：</span><span class="text-xl font-bold ${ptCorrect ? 'text-green-600' : 'text-red-500'}">${wd.pt}</span></div>`;
+      }
       document.getElementById('quiz-result-example').innerHTML = getMeaningsHTML(wd) + extra;
       const sIcon2 = document.getElementById('star-btn-icon2');
       if (sIcon2) sIcon2.textContent = data.starred && data.starred[wd.w] ? '🌟' : '⭐';
