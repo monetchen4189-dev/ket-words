@@ -409,7 +409,7 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
   <div class="flex items-center gap-3 mb-4">
     <button class="kid-btn small outline" onclick="renderHome();showPage('home')">← 返回</button>
     <h2 class="font-bold text-xl text-gray-700 flex-1">📦 自定义词库</h2>
-    <button class="kid-btn small green" onclick="showPage('bank-add')">➕ 新建</button>
+    <button class="kid-btn small green" onclick="resetBankForm();showPage('bank-add')">➕ 新建</button>
   </div>
   <div id="bank-list" class="space-y-2"></div>
 </div>
@@ -425,8 +425,12 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
       <label class="block font-bold text-gray-700 mb-1">📛 词库名称</label>
       <input type="text" class="input-big" id="bank-name-input" placeholder="输入词库名称..." style="font-size:1rem;padding:10px 14px;text-align:left;max-width:100%">
     </div>
+    <div class="mb-3" id="bank-existing-section" style="display:none">
+      <label class="block font-bold text-gray-700 mb-1">📋 已有单词（共 <span id="bank-existing-count">0</span> 个）</label>
+      <div id="bank-existing-words" class="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-gray-50 rounded-xl"></div>
+    </div>
     <div class="mb-3">
-      <label class="block font-bold text-gray-700 mb-1">➕ 添加单词（每行一个，格式：单词 中文释义）</label>
+      <label class="block font-bold text-gray-700 mb-1">➕ 添加新单词（每行一个，格式：单词 中文释义）</label>
       <textarea class="input-big" id="bank-words-input" placeholder="apple 苹果&#10;banana 香蕉&#10;cat 猫" style="font-size:1rem;padding:10px 14px;text-align:left;max-width:100%;min-height:120px;resize:vertical"></textarea>
     </div>
     <button class="kid-btn w-full justify-center" id="btn-bank-save" onclick="saveCustomBank()" style="padding:12px;font-size:1rem">💾 保存词库</button>
@@ -1849,9 +1853,25 @@ function editBank(bankId) {
   if (!bank) return;
   document.getElementById('bank-add-title').textContent = '✏️ 编辑词库';
   document.getElementById('bank-name-input').value = bank.name;
-  document.getElementById('bank-words-input').value = (bank.words || []).map(w => `${w.w} ${w.m || ''}`).join('\n');
+  document.getElementById('bank-words-input').value = '';
+  document.getElementById('bank-words-input').placeholder = '输入要新增的单词，每行一个...';
+  const words = bank.words || [];
+  document.getElementById('bank-existing-count').textContent = words.length;
+  document.getElementById('bank-existing-words').innerHTML = words.map(w => `<span class="bg-blue-100 text-blue-700 text-sm px-2.5 py-1 rounded-full">${w.w}</span>`).join('');
+  document.getElementById('bank-existing-section').style.display = '';
+  document.getElementById('bank-add-status').textContent = '';
   document.getElementById('btn-bank-save').dataset.editId = bankId;
   showPage('bank-add');
+}
+
+function resetBankForm() {
+  document.getElementById('bank-add-title').textContent = '新建词库';
+  document.getElementById('bank-name-input').value = '';
+  document.getElementById('bank-words-input').value = '';
+  document.getElementById('bank-words-input').placeholder = 'apple 苹果\nbanana 香蕉\ncat 猫';
+  document.getElementById('btn-bank-save').dataset.editId = '';
+  document.getElementById('bank-existing-section').style.display = 'none';
+  document.getElementById('bank-add-status').textContent = '';
 }
 
 function saveCustomBank() {
@@ -1893,13 +1913,15 @@ function saveCustomBank() {
   // Dedup: keep old words, only add entries with new words
   const existingWordSet = new Set(bank.words.map(w => w.w.toLowerCase()));
   const newEntries = entries.filter(e => !existingWordSet.has(e.word));
+  const dupWords = entries.filter(e => existingWordSet.has(e.word)).map(e => e.word);
   if (newEntries.length === 0) {
-    status.textContent = '✅ 所有单词已存在，无需添加';
+    status.textContent = dupWords.length > 0 ? `✅ 所有单词都已存在：${dupWords.slice(0,10).join(', ')}${dupWords.length > 10 ? '...' : ''}` : '✅ 所有单词已存在，无需添加';
     if (!editId) banks.push(bank);
     saveCustomBanks(banks);
     document.getElementById('btn-bank-save').dataset.editId = '';
     document.getElementById('bank-name-input').value = '';
     document.getElementById('bank-words-input').value = '';
+    document.getElementById('bank-existing-section').style.display = 'none';
     renderBankSelector();
     renderBankList();
     showPage('banks');
@@ -1950,10 +1972,13 @@ function saveCustomBank() {
     saveCustomBanks(banks);
     const added = newEntries.length;
     const skipped = entries.length - added;
-    status.textContent = `✅ 保存成功！新增 ${added} 个单词${skipped > 0 ? `，${skipped} 个重复已跳过` : ''}。共 ${bank.words.length} 个单词。`;
+    let msg = `✅ 保存成功！新增 ${added} 个单词，共 ${bank.words.length} 个单词。`;
+    if (skipped > 0) msg += `<br><span class="text-xs text-gray-400">重复已跳过：${dupWords.slice(0,10).join(', ')}${dupWords.length > 10 ? '...' : ''}</span>`;
+    status.innerHTML = msg;
     document.getElementById('btn-bank-save').dataset.editId = '';
     document.getElementById('bank-name-input').value = '';
     document.getElementById('bank-words-input').value = '';
+    document.getElementById('bank-existing-section').style.display = 'none';
     renderBankSelector();
     renderBankList();
     showPage('banks');
