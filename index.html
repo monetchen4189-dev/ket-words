@@ -1224,14 +1224,30 @@ function submitLetterAnswer() {
   const answer = _tileAnswer.map(t => t.ch).join('');
   const isCorrect = answer.toLowerCase() === wd.w.toLowerCase();
   const hasPT = !document.getElementById('past-tense-area').classList.contains('hidden');
-  let ptCorrect = true;
-  if (hasPT) {
-    const ptInput = document.getElementById('pt-input').value.trim().toLowerCase().replace(/\s+/g, '');
-    ptCorrect = ptInput === wd.pt.toLowerCase();
-  }
   
   if (isCorrect) {
-    if (window.doQuizResult) window.doQuizResult(wd, true, ptCorrect);
+    if (hasPT) {
+      const ptInput = document.getElementById('pt-input').value.trim();
+      const ptEl = document.getElementById('pt-input');
+      if (!ptInput) {
+        ptEl.focus();
+        const hintArea = document.getElementById('quiz-hint-area');
+        hintArea.classList.remove('hidden');
+        document.getElementById('quiz-hint-text').textContent = '📝 请输入过去式！';
+        return;
+      }
+      const ptLower = ptInput.toLowerCase().replace(/\s+/g, '');
+      if (ptLower !== wd.pt.toLowerCase()) {
+        ptEl.className = 'input-big wrong';
+        ptEl.focus();
+        const hintArea = document.getElementById('quiz-hint-area');
+        hintArea.classList.remove('hidden');
+        document.getElementById('quiz-hint-text').textContent = `❌ 过去式有误，正确答案是：${wd.pt}`;
+        setTimeout(() => { ptEl.className = 'input-big'; }, 2000);
+        return;
+      }
+    }
+    if (window.doQuizResult) window.doQuizResult(wd, true);
   } else {
     document.querySelectorAll('#letter-tile-answer .letter-tile').forEach(el => {
       el.classList.add('wrong-tile');
@@ -2153,18 +2169,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const answer = wd.w.toLowerCase().replace(/\s+/g, '');
     const isCorrect = input === answer;
     const hasPT = !document.getElementById('past-tense-area').classList.contains('hidden');
-    let ptCorrect = true;
     if (hasPT) {
-      const ptInput = document.getElementById('pt-input').value.trim().toLowerCase().replace(/\s+/g, '');
-      ptCorrect = ptInput === wd.pt.toLowerCase();
+      const ptInput = document.getElementById('pt-input').value.trim();
+      const ptEl = document.getElementById('pt-input');
+      if (!ptInput) {
+        ptEl.focus();
+        ptEl.className = 'input-big';
+        const hintArea = document.getElementById('quiz-hint-area');
+        hintArea.classList.remove('hidden');
+        document.getElementById('quiz-hint-text').textContent = '📝 请输入过去式！';
+        return;
+      }
+      const ptLower = ptInput.toLowerCase().replace(/\s+/g, '');
+      if (ptLower !== wd.pt.toLowerCase()) {
+        ptEl.className = 'input-big wrong';
+        ptEl.focus();
+        const hintArea = document.getElementById('quiz-hint-area');
+        hintArea.classList.remove('hidden');
+        document.getElementById('quiz-hint-text').textContent = `❌ 过去式有误，正确答案是：${wd.pt}`;
+        setTimeout(() => { ptEl.className = 'input-big'; }, 2000);
+        return;
+      }
     }
-    doQuizResult(wd, isCorrect, ptCorrect);
+    doQuizResult(wd, isCorrect);
   };
 
-  function doQuizResult(wd, isCorrect, ptCorrect) {
+  function doQuizResult(wd, isCorrect) {
     const w = wd.w;
-    const hasPT = !document.getElementById('past-tense-area').classList.contains('hidden');
-    const allCorrect = hasPT ? (isCorrect && ptCorrect) : isCorrect;
     if (!data.wordStats) data.wordStats = {};
     if (!data.wordStats[w]) data.wordStats[w] = { reviewCount: 0, wrongCount: 0, mastered: false, lastReview: null };
     if (!data.history) data.history = {};
@@ -2195,25 +2226,19 @@ document.addEventListener('DOMContentLoaded', () => {
       data.dailyRecords[t].total++;
     }
 
-    const allCorrectResult = hasPT ? allCorrect : isCorrect;
-    if (allCorrectResult || isCorrect) {
+    if (isCorrect) {
       saveData();
       document.getElementById('quiz-card').classList.add('hidden');
       document.getElementById('quiz-result-card').classList.remove('hidden');
-      if (allCorrectResult) {
-        document.getElementById('quiz-result-icon').textContent = '🎉';
-        document.getElementById('quiz-result-title').textContent = '✅ 正确！';
-      } else {
-        document.getElementById('quiz-result-icon').textContent = '⚠️';
-        document.getElementById('quiz-result-title').textContent = '单词正确，但过去式有误';
-      }
+      document.getElementById('quiz-result-icon').textContent = '🎉';
+      document.getElementById('quiz-result-title').textContent = '✅ 正确！';
       document.getElementById('quiz-result-word').textContent = wd.w;
       document.getElementById('quiz-result-meaning').textContent = wd.m || '';
       let extra = '';
       if (wd.col) extra += `<div class="mt-2"><span class="text-base text-gray-400">🔗 搭配：</span><span class="text-xl">${wd.col}</span></div>`;
       if (wd.tip) extra += `<div class="mt-1"><span class="text-base text-gray-400">💡 记忆：</span><span class="text-xl">${wd.tip}</span></div>`;
-      if (hasPT) {
-        extra += `<div class="mt-2"><span class="text-base text-gray-400">⏪ 过去式：</span><span class="text-xl font-bold ${ptCorrect ? 'text-green-600' : 'text-red-500'}">${wd.pt}</span></div>`;
+      if (wd.pt) {
+        extra += `<div class="mt-2"><span class="text-base text-gray-400">⏪ 过去式：</span><span class="text-xl font-bold text-green-600">${wd.pt}</span></div>`;
       }
       document.getElementById('quiz-result-example').innerHTML = getMeaningsHTML(wd) + extra;
       updateStarIcons(wd.w);
