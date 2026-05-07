@@ -1143,7 +1143,7 @@ function showLearnComplete() {
 
 /* ========== QUIZ ========== */
 function startQuiz() {
-  if (settings.currentBank && settings.currentBank !== '__ket__') {
+  if (settings.currentBank && settings.currentBank !== '__ket__' && settings.currentBank !== '__ket_writing__') {
     const banks = loadCustomBanks();
     const bank = banks.find(b => b.id === settings.currentBank);
     if (bank && bank.words && bank.words.length > 0) {
@@ -1154,6 +1154,11 @@ function startQuiz() {
       return;
     }
     settings.currentBank = '__ket__';
+    saveSettings(settings);
+  }
+  if (settings.currentBank === '__ket_writing__') {
+    settings.spellMode = 'click';
+    document.getElementById('setting-spell-mode').value = 'click';
     saveSettings(settings);
   }
   initSession();
