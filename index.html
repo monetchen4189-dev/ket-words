@@ -2042,6 +2042,19 @@ let _customQuizWords = [];
 let _customQuizIdx = 0;
 
 function startCustomQuiz(bankId) {
+  // KET写作高频词走点选拼写模式
+  if (bankId === '__ket_writing__') {
+    switchBank(bankId);
+    settings.spellMode = 'click';
+    document.getElementById('setting-spell-mode').value = 'click';
+    saveSettings(settings);
+    initSession();
+    isLearningMode = false;
+    showPage('quiz');
+    quizHintLevel = 0;
+    renderQuiz();
+    return;
+  }
   const banks = loadCustomBanks();
   const bank = banks.find(b => b.id === bankId);
   if (!bank || !bank.words.length) { alert('词库为空'); return; }
