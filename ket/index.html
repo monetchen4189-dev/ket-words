@@ -387,6 +387,23 @@ select.kid-select{appearance:none;background:#fff;border:2px solid #dbeafe;borde
   </div>
 </div>
 
+<!-- ========== RESET CONFIRM MODAL ========== -->
+<div id="reset-modal" class="fixed inset-0 bg-black/40 items-center justify-center z-50" style="display:none" onclick="if(event.target===this)document.getElementById('reset-modal').style.display='none'">
+  <div class="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
+    <div class="text-center">
+      <div class="text-4xl mb-3">⚠️</div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">重置学习记录</h3>
+      <p class="text-gray-600 mb-1">确定要重置当前词库的学习记录吗？</p>
+      <p class="text-sm text-gray-400 mb-4" id="reset-modal-bank-name"></p>
+      <p class="text-xs text-gray-400 mb-5">此操作将清除当前词库的学习进度、单词统计和错题数据，<br>但保留每日打卡记录。</p>
+      <div class="flex gap-3">
+        <button class="kid-btn outline flex-1" id="reset-modal-cancel">取消</button>
+        <button class="kid-btn orange flex-1" id="reset-modal-confirm">确认重置</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ========== CUSTOM BANK: Manager ========== -->
 <div class="page" id="page-banks">
   <div class="flex items-center gap-3 mb-4">
@@ -1551,8 +1568,10 @@ function renderStats() {
     const summaryEl = document.getElementById('category-summary');
     if (!window._currentCategory) window._currentCategory = 'all';
 
+    const currentWords = getCurrentWords();
+    const activeCategories = ['all', ...new Set(currentWords.map(w => getWordTheme(w.w)).filter(t => t !== 'other')), 'other'];
     tabsEl.innerHTML = `<span class="cat-tab ${window._currentCategory === 'all' ? 'active' : ''}" data-cat="all">📚 全部</span>` +
-      THEME_ORDER.map(t => `<span class="cat-tab ${window._currentCategory === t ? 'active' : ''}" data-cat="${t}">${THEME_LABELS_ALL[t] || t}</span>`).join('');
+      activeCategories.filter(t => t !== 'all').map(t => `<span class="cat-tab ${window._currentCategory === t ? 'active' : ''}" data-cat="${t}">${THEME_LABELS_ALL[t] || t}</span>`).join('');
     tabsEl.querySelectorAll('.cat-tab').forEach(tab => {
       tab.onclick = () => {
         window._currentCategory = tab.dataset.cat;
@@ -1613,7 +1632,8 @@ function renderMasteryGrid() {
   if (!tabsEl || !grid) return;
   tabsEl.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
 
-  const filtered = cat === 'all' ? ALL_WORDS : ALL_WORDS.filter(w => getWordTheme(w.w) === cat);
+  const currentWords = getCurrentWords();
+  const filtered = cat === 'all' ? currentWords : currentWords.filter(w => getWordTheme(w.w) === cat);
   const catLearned = filtered.filter(w => wStats[w.w] && !wStats[w.w].mastered && (wStats[w.w].reviewCount || wStats[w.w].wrongCount)).length;
   const catMastered = filtered.filter(w => wStats[w.w] && wStats[w.w].mastered).length;
   const catTotal = filtered.length;
@@ -1745,10 +1765,17 @@ function getCustomWordData(w) {
 }
 
 function switchBank(bankId) {
+  const oldId = settings.currentBank || '__ket__';
+  if (!data.bankProgress) data.bankProgress = {};
+  data.bankProgress[oldId] = {
+    todayWords: data.todayWords || [],
+    todayDone: data.todayDone || {}
+  };
   settings.currentBank = bankId;
   saveSettings(settings);
-  data.todayWords = [];
-  data.todayDone = {};
+  const saved = data.bankProgress[bankId];
+  data.todayWords = saved ? saved.todayWords : [];
+  data.todayDone = saved ? saved.todayDone : {};
   saveData();
   renderHome();
 }
@@ -1862,10 +1889,25 @@ function saveCustomBank() {
   const bank = editId ? banks.find(b => b.id === editId) : { id: 'bank_' + Date.now(), name: '', words: [] };
   if (!bank) return;
   bank.name = name;
-  bank.words = [];
+
+  // Dedup: keep old words, only add entries with new words
+  const existingWordSet = new Set(bank.words.map(w => w.w.toLowerCase()));
+  const newEntries = entries.filter(e => !existingWordSet.has(e.word));
+  if (newEntries.length === 0) {
+    status.textContent = '✅ 所有单词已存在，无需添加';
+    if (!editId) banks.push(bank);
+    saveCustomBanks(banks);
+    document.getElementById('btn-bank-save').dataset.editId = '';
+    document.getElementById('bank-name-input').value = '';
+    document.getElementById('bank-words-input').value = '';
+    renderBankSelector();
+    renderBankList();
+    showPage('banks');
+    return;
+  }
 
   let completed = 0;
-  entries.forEach(({ word, meaning }) => {
+  newEntries.forEach(({ word, meaning }) => {
     fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word))
       .then(r => { if (!r.ok) throw new Error('API error'); return r.json(); })
       .then(d => {
@@ -1903,10 +1945,12 @@ function saveCustomBank() {
   });
 
   function checkDone() {
-    if (completed < entries.length) return;
+    if (completed < newEntries.length) return;
     if (!editId) banks.push(bank);
     saveCustomBanks(banks);
-    status.textContent = `✅ 保存成功！共 ${bank.words.length} 个单词。`;
+    const added = newEntries.length;
+    const skipped = entries.length - added;
+    status.textContent = `✅ 保存成功！新增 ${added} 个单词${skipped > 0 ? `，${skipped} 个重复已跳过` : ''}。共 ${bank.words.length} 个单词。`;
     document.getElementById('btn-bank-save').dataset.editId = '';
     document.getElementById('bank-name-input').value = '';
     document.getElementById('bank-words-input').value = '';
@@ -2239,18 +2283,36 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-reset-data').onclick = resetData;
 
     document.getElementById('btn-reset-records').onclick = () => {
-      if (confirm('确定要重置学习记录吗？这将清除所有学习进度、单词统计和错题数据，但保留每日打卡记录。')) {
-        data.wordStats = {};
-        data.session = { date: '', count: 0, correct: 0 };
-        data.todayWords = [];
-        data.todayDone = {};
-        data.wrong = {};
-        data.starred = {};
-        data.history = {};
-        saveData();
-        alert('✅ 学习记录已重置！');
-        renderHome();
+      const bid = settings.currentBank || '__ket__';
+      let bankName = 'KET 核心词汇';
+      if (bid === '__ket_writing__') bankName = 'KET写作高频词';
+      else {
+        const banks = loadCustomBanks();
+        const bank = banks.find(b => b.id === bid);
+        if (bank) bankName = bank.name;
       }
+      document.getElementById('reset-modal-bank-name').textContent = `词库：${bankName}`;
+      document.getElementById('reset-modal').style.display = 'flex';
+    };
+
+    document.getElementById('reset-modal-cancel').onclick = () => {
+      document.getElementById('reset-modal').style.display = 'none';
+    };
+
+    document.getElementById('reset-modal-confirm').onclick = () => {
+      const currentWords = getCurrentWords();
+      const wordSet = new Set(currentWords.map(w => w.w));
+      if (data.wordStats) Object.keys(data.wordStats).forEach(w => { if (wordSet.has(w)) delete data.wordStats[w]; });
+      if (data.history) Object.keys(data.history).forEach(w => { if (wordSet.has(w)) delete data.history[w]; });
+      if (data.wrong) Object.keys(data.wrong).forEach(w => { if (wordSet.has(w)) delete data.wrong[w]; });
+      if (data.starred) Object.keys(data.starred).forEach(w => { if (wordSet.has(w)) delete data.starred[w]; });
+      data.session = { date: '', count: 0, correct: 0 };
+      data.todayWords = [];
+      data.todayDone = {};
+      saveData();
+      document.getElementById('reset-modal').style.display = 'none';
+      renderHome();
+      alert('✅ 当前词库的学习记录已重置！');
     };
 
   document.getElementById('btn-quiz-next').onclick = null;
