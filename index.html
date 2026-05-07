@@ -1882,9 +1882,6 @@ function saveCustomBank() {
   const raw = document.getElementById('bank-words-input').value.trim();
   const status = document.getElementById('bank-add-status');
   if (!name) { status.textContent = '❌ 请输入词库名称'; return; }
-  const wordList = raw.split('\n').map(w => w.trim().toLowerCase()).filter(w => w && /^[a-z]+$/.test(w));
-  if (wordList.length === 0) { status.textContent = '❌ 请输入至少一个有效英文单词'; return; }
-  status.textContent = `⏳ 正在查询 ${wordList.length} 个单词...`;
 
   const editId = document.getElementById('btn-bank-save').dataset.editId;
   const banks = loadCustomBanks();
@@ -1894,7 +1891,13 @@ function saveCustomBank() {
 
   const bank = editId ? banks.find(b => b.id === editId) : { id: 'bank_' + Date.now(), name: '', words: [] };
   if (!bank) return;
+  const isNewBank = !editId;
   bank.name = name;
+
+  // Parse new words from input
+  const wordList = raw.split('\n').map(w => w.trim().toLowerCase()).filter(w => w && /^[a-z]+$/.test(w));
+  if (isNewBank && wordList.length === 0) { status.textContent = '❌ 请输入至少一个有效英文单词'; return; }
+
   // when editing, reuse old words data
   const oldWords = bank.words || [];
   bank.words = [];
@@ -1907,18 +1910,24 @@ function saveCustomBank() {
   // Re-add all old words first
   oldWords.forEach(ow => bank.words.push(ow));
 
+  // If saving edit with no new words (e.g. just renamed), save immediately
   if (newWordList.length === 0) {
-    if (!editId) banks.push(bank);
+    if (isNewBank) banks.push(bank);
     saveCustomBanks(banks);
-    status.textContent = dupWords.length > 0 ? `✅ 所有单词都已存在：${dupWords.slice(0,10).join(', ')}${dupWords.length > 10 ? '...' : ''}` : '❌ 请输入至少一个有效英文单词';
-    document.getElementById('btn-bank-save').dataset.editId = '';
-    document.getElementById('bank-name-input').value = '';
-    document.getElementById('bank-words-input').value = '';
-    document.getElementById('bank-existing-section').style.display = 'none';
-    renderBankSelector();
-    renderHome();
+    const msg = dupWords.length > 0 ? `✅ 所有单词都已存在：${dupWords.slice(0,10).join(', ')}${dupWords.length > 10 ? '...' : ''}` : (isNewBank ? '❌ 请输入至少一个有效英文单词' : '✅ 词库已更新');
+    status.textContent = msg;
+    if (!isNewBank || dupWords.length > 0) {
+      document.getElementById('btn-bank-save').dataset.editId = '';
+      document.getElementById('bank-name-input').value = '';
+      document.getElementById('bank-words-input').value = '';
+      document.getElementById('bank-existing-section').style.display = 'none';
+      renderBankSelector();
+      renderHome();
+    }
     return;
   }
+
+  status.textContent = `⏳ 正在查询 ${newWordList.length} 个单词...`;
 
   // collect previously fetched words to avoid re-fetching if already have allMeanings
   const wordToOld = {};
